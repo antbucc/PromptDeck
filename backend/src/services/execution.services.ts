@@ -2,6 +2,7 @@ import { openai } from '../config/openai.client';
 import { ICard } from '../models/card.models'; // Import the Mongoose document type
 import { generatePrompt } from '../utils/prompt.utils';
 import { GenerativeModels } from '../types/GenerativeModels';
+import { generateWithClaude } from './claude.services';
 
 export const executeCard = async (
     card: ICard, // Use the Mongoose document type
@@ -18,6 +19,13 @@ export const executeCard = async (
         throw new Error(`Unsupported generative model: ${card.generativeModel}`);
     }
     const modelName = GenerativeModels.getModelName(card.generativeModel as string);
+    const provider = GenerativeModels.getProvider(card.generativeModel as string);
+
+    // Route Anthropic models to the Claude service.
+    if (provider === 'anthropic') {
+        const generatedText = await generateWithClaude(modelName, prompt);
+        return { generatedText };
+    }
 
     try {
         const response = await openai.getChatCompletions(

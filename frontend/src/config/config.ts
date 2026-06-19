@@ -2,6 +2,9 @@
 export const GENERATIVE_MODELS = [
     { value: 'GPT_3_5_TURBO', label: 'GPT-3.5 Turbo' },
     { value: 'GPT_4', label: 'GPT-4' },
+    { value: 'CLAUDE_OPUS_4_8', label: 'Claude Opus 4.8' },
+    { value: 'CLAUDE_SONNET_4_6', label: 'Claude Sonnet 4.6' },
+    { value: 'CLAUDE_HAIKU_4_5', label: 'Claude Haiku 4.5' },
 ];
 export const MUSIC_INSTRUMENTS = [
     "AcousticGrandPiano",

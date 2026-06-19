@@ -4,6 +4,9 @@ import { exec } from 'child_process';
 import { writeFileSync, unlinkSync } from 'fs';
 import { CardModel } from '../models/card.models';
 import { v4 as uuidv4 } from 'uuid';
+import { GenerativeModels } from '../types/GenerativeModels';
+import { evaluateWithClaude } from './claude.services';
+import { CLAUDE_EVAL_MODEL } from '../utils/secrets';
 
 interface EvaluationResult {
     relevance_score: number;
@@ -23,6 +26,13 @@ export async function evaluateCardOutput(cardId: string): Promise<EvaluationResu
 
     if (!answer) {
         throw new Error('Card has no output to evaluate');
+    }
+
+    // Cards backed by a Claude model are evaluated with Claude acting as an
+    // LLM judge; OpenAI-backed cards keep using the Azure/PromptFlow evaluator.
+    const provider = GenerativeModels.getProvider(card.generativeModel as string);
+    if (provider === 'anthropic') {
+        return evaluateWithClaude({ answer, context, question: prompt }, CLAUDE_EVAL_MODEL);
     }
 
     const evaluationInput = {
