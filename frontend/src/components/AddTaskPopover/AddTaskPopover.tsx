@@ -45,7 +45,7 @@ const AddTaskPopover: React.FC<AddTaskPopoverProps> = ({
     if (available.length && !available.some((m) => m.value === generativeModel)) {
       setGenerativeModel(available[0].value);
     }
-  }, [modelGroups]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [modelGroups]);
   const [isLoading, setIsLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
 

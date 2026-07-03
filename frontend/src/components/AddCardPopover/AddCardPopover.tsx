@@ -44,7 +44,7 @@ const AddCardPopover: React.FC<AddCardPopoverProps> = ({
     if (available.length && !available.some((m) => m.value === generativeModel)) {
       setGenerativeModel(available[0].value);
     }
-  }, [modelGroups]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [modelGroups]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
