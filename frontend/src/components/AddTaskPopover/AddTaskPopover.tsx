@@ -45,7 +45,7 @@ const AddTaskPopover: React.FC<AddTaskPopoverProps> = ({ isOpen, onRequestClose,
   const [objective, setObjective] = useState('');
   const [generate, setGenerate] = useState(false);
   const [generativeModel, setGenerativeModel] = useState('GROQ_LLAMA_3_3_70B');
-  const { groups: modelGroups } = useModels();
+  const { groups: modelGroups, loading: modelsLoading } = useModels();
 
   // Grounding fields (only used when generating a flow).
   const [audience, setAudience] = useState('');
@@ -58,13 +58,16 @@ const AddTaskPopover: React.FC<AddTaskPopoverProps> = ({ isOpen, onRequestClose,
   const [isLoading, setIsLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
 
-  // Default to Groq 70B, auto-correcting to the first available model if needed.
+  // Default to Groq 70B; only after the real model list has loaded, auto-correct
+  // to the first available model if the default isn't usable here. (Skipping the
+  // initial fallback list prevents wrongly switching away from the default.)
   useEffect(() => {
+    if (modelsLoading) return;
     const available = modelGroups.flatMap((g) => g.models).filter((m) => m.available);
     if (available.length && !available.some((m) => m.value === generativeModel)) {
       setGenerativeModel(available[0].value);
     }
-  }, [modelGroups]);
+  }, [modelGroups, modelsLoading]);
 
   const allModels = modelGroups.flatMap((g) => g.models);
   const selectedModel = allModels.find((m) => m.value === generativeModel);

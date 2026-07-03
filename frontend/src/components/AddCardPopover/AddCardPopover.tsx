@@ -35,16 +35,17 @@ const AddCardPopover: React.FC<AddCardPopoverProps> = ({
   const [context, setContext] = useState('');
   const [exampleOutput, setExampleOutput] = useState('');
   const [generativeModel, setGenerativeModel] = useState('GROQ_LLAMA_3_3_70B');
-  const { groups: modelGroups } = useModels();
+  const { groups: modelGroups, loading: modelsLoading } = useModels();
 
-  // Default to Groq 70B (reliable for generation), but if it (or the current
-  // choice) isn't available in this environment, fall back to the first available model.
+  // Default to Groq 70B; only after the real model list loads, auto-correct to the
+  // first available model if the default isn't usable (skip the initial fallback).
   useEffect(() => {
+    if (modelsLoading) return;
     const available = modelGroups.flatMap((g) => g.models).filter((m) => m.available);
     if (available.length && !available.some((m) => m.value === generativeModel)) {
       setGenerativeModel(available[0].value);
     }
-  }, [modelGroups]);
+  }, [modelGroups, modelsLoading]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
