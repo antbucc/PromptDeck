@@ -35,11 +35,11 @@ const AddTaskPopover: React.FC<AddTaskPopoverProps> = ({
   const [name, setName] = useState('');
   const [objective, setObjective] = useState('');
   const [generate, setGenerate] = useState(false);
-  const [generativeModel, setGenerativeModel] = useState('LLAMA_3_2_1B');
+  const [generativeModel, setGenerativeModel] = useState('GROQ_LLAMA_3_3_70B');
   const { groups: modelGroups } = useModels();
 
-  // Default to the light Llama 3.2 1B, but auto-correct to the first available
-  // model if that choice isn't usable in this environment.
+  // Default to Groq 70B (reliable for task generation), auto-correcting to the
+  // first available model if that choice isn't usable in this environment.
   useEffect(() => {
     const available = modelGroups.flatMap((g) => g.models).filter((m) => m.available);
     if (available.length && !available.some((m) => m.value === generativeModel)) {

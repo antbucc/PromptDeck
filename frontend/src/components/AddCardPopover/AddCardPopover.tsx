@@ -34,11 +34,11 @@ const AddCardPopover: React.FC<AddCardPopoverProps> = ({
   const [prompt, setPrompt] = useState('');
   const [context, setContext] = useState('');
   const [exampleOutput, setExampleOutput] = useState('');
-  const [generativeModel, setGenerativeModel] = useState('LLAMA_3_2_1B');
+  const [generativeModel, setGenerativeModel] = useState('GROQ_LLAMA_3_3_70B');
   const { groups: modelGroups } = useModels();
 
-  // Default to the light Llama 3.2 1B, but if it (or the current choice) isn't
-  // available in this environment, fall back to the first available model.
+  // Default to Groq 70B (reliable for generation), but if it (or the current
+  // choice) isn't available in this environment, fall back to the first available model.
   useEffect(() => {
     const available = modelGroups.flatMap((g) => g.models).filter((m) => m.available);
     if (available.length && !available.some((m) => m.value === generativeModel)) {
