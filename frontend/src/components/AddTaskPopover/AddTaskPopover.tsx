@@ -35,8 +35,17 @@ const AddTaskPopover: React.FC<AddTaskPopoverProps> = ({
   const [name, setName] = useState('');
   const [objective, setObjective] = useState('');
   const [generate, setGenerate] = useState(false);
-  const [generativeModel, setGenerativeModel] = useState('LLAMA_3_1');
+  const [generativeModel, setGenerativeModel] = useState('LLAMA_3_2_1B');
   const { groups: modelGroups } = useModels();
+
+  // Default to the light Llama 3.2 1B, but auto-correct to the first available
+  // model if that choice isn't usable in this environment.
+  useEffect(() => {
+    const available = modelGroups.flatMap((g) => g.models).filter((m) => m.available);
+    if (available.length && !available.some((m) => m.value === generativeModel)) {
+      setGenerativeModel(available[0].value);
+    }
+  }, [modelGroups]); // eslint-disable-line react-hooks/exhaustive-deps
   const [isLoading, setIsLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
 

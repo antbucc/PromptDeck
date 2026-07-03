@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import {
   FormContainer,
@@ -34,8 +34,17 @@ const AddCardPopover: React.FC<AddCardPopoverProps> = ({
   const [prompt, setPrompt] = useState('');
   const [context, setContext] = useState('');
   const [exampleOutput, setExampleOutput] = useState('');
-  const [generativeModel, setGenerativeModel] = useState('LLAMA_3_1');
+  const [generativeModel, setGenerativeModel] = useState('LLAMA_3_2_1B');
   const { groups: modelGroups } = useModels();
+
+  // Default to the light Llama 3.2 1B, but if it (or the current choice) isn't
+  // available in this environment, fall back to the first available model.
+  useEffect(() => {
+    const available = modelGroups.flatMap((g) => g.models).filter((m) => m.available);
+    if (available.length && !available.some((m) => m.value === generativeModel)) {
+      setGenerativeModel(available[0].value);
+    }
+  }, [modelGroups]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
