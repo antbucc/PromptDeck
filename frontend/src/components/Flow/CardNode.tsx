@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Handle, Position } from 'react-flow-renderer';
-import { CardContainer, TitleBand, StatusDot, StatusLabel, ExecuteButton, StatusContainer, LoadingIcon, CloseButton, WarningIcon, WarningWrapper, RunOverlay, RunSpinner, StepBadge, AltBar, AltBadge, ChooseButton } from './CardNode.styles';
+import { CardContainer, TitleBand, StatusDot, StatusLabel, ExecuteButton, StatusContainer, LoadingIcon, CloseButton, WarningIcon, WarningWrapper, RunOverlay, RunSpinner, StepBadge, AltBar, AltBadge, ChooseButton, Preview, ScoreBadge } from './CardNode.styles';
 import { executeIcon, warningIcon, loadingIcon } from '../../assets';
 import { executeCard, deleteCard } from '../../services/api';
 
@@ -20,6 +20,8 @@ interface CardNodeProps {
     runState?: 'queued' | 'running' | 'done' | 'error';
     alternativeGroup?: string | null;
     selected?: boolean;
+    outputPreview?: string;
+    avgScore?: number | null;
   };
 }
 
@@ -57,9 +59,12 @@ const CardNode: React.FC<CardNodeProps> = ({ data }) => {
   const runState = data.runState || (isExecuting ? 'running' : undefined);
   const isAlternative = !!data.alternativeGroup;
   const dimmed = isAlternative && data.selected === false;
+  const hasScore = typeof data.avgScore === 'number';
+  // Metrics below 3.5/5 flag the card as needing improvement (highlighted colour).
+  const needsImprovement = hasScore && (data.avgScore as number) < 3.5;
 
   return (
-    <CardContainer $inconsistent={data.inconsistent} $runState={runState} $dimmed={dimmed}>
+    <CardContainer $inconsistent={data.inconsistent} $runState={runState} $dimmed={dimmed} $lowScore={needsImprovement}>
       <TitleBand title={data.title}>{data.title}</TitleBand>
       <CloseButton onClick={handleDelete}>×</CloseButton>
       {runState && (
@@ -88,14 +93,26 @@ const CardNode: React.FC<CardNodeProps> = ({ data }) => {
           )}
         </AltBar>
       )}
+      {data.outputPreview && runState !== 'running' && (
+        <Preview title={data.outputPreview}>{data.outputPreview}</Preview>
+      )}
       <StatusContainer>
         <ExecuteButton onClick={handleExecute} data-tooltip="Execute Card" disabled={isExecuting}>
           {isExecuting ? <LoadingIcon src={loadingIcon} alt="Loading" /> : <img src={executeIcon} alt="Execute" />}
         </ExecuteButton>
         <StatusDot $status={data.executed ? 'executed' : 'not-executed'} />
-        <StatusLabel $status={data.executed ? 'executed' : 'not-executed'}>
-          {data.executed ? 'Executed' : 'Pending'}
-        </StatusLabel>
+        {hasScore ? (
+          <ScoreBadge
+            $score={data.avgScore as number}
+            title={`Average score ${(data.avgScore as number).toFixed(1)}/5${needsImprovement ? ' — needs improvement' : ''}`}
+          >
+            ★ {(data.avgScore as number).toFixed(1)}
+          </ScoreBadge>
+        ) : (
+          <StatusLabel $status={data.executed ? 'executed' : 'not-executed'}>
+            {data.executed ? 'Executed' : 'Pending'}
+          </StatusLabel>
+        )}
       </StatusContainer>
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />

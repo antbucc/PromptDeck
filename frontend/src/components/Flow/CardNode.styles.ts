@@ -11,31 +11,33 @@ const pulse = keyframes`
   100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
 `;
 
-// Border + shadow per run state; falls back to the inconsistent/default look.
-const runBorder = (runState?: string, inconsistent?: boolean) => {
+// Border + shadow per run state; falls back to inconsistent/low-score/default.
+const runBorder = (runState?: string, inconsistent?: boolean, lowScore?: boolean) => {
   switch (runState) {
     case 'running': return '#3b82f6';
     case 'done': return '#10b981';
     case 'error': return '#ef4444';
     case 'queued': return '#cbd5e1';
-    default: return inconsistent ? '#f59e0b' : 'rgba(15, 23, 42, 0.08)';
+    default: return inconsistent ? '#f59e0b' : lowScore ? '#f43f5e' : 'rgba(15, 23, 42, 0.08)';
   }
 };
 
-export const CardContainer = styled.div<{ $inconsistent?: boolean; $runState?: string; $dimmed?: boolean }>`
+export const CardContainer = styled.div<{ $inconsistent?: boolean; $runState?: string; $dimmed?: boolean; $lowScore?: boolean }>`
   position: relative;
   width: 220px;
-  min-height: 132px;
+  min-height: 150px;
   margin: 16px;
-  padding: 52px 16px 16px;
-  background: #ffffff;
+  padding: 50px 14px 42px;
+  background: ${({ $lowScore }) => ($lowScore ? '#fff5f6' : '#ffffff')};
   border-radius: 16px;
-  border: 1px ${({ $dimmed }) => ($dimmed ? 'dashed' : 'solid')} ${({ $runState, $inconsistent }) => runBorder($runState, $inconsistent)};
+  border: 1px ${({ $dimmed }) => ($dimmed ? 'dashed' : 'solid')} ${({ $runState, $inconsistent, $lowScore }) => runBorder($runState, $inconsistent, $lowScore)};
   opacity: ${({ $runState, $dimmed }) => ($runState === 'queued' ? 0.65 : $dimmed ? 0.5 : 1)};
-  box-shadow: ${({ $inconsistent }) =>
+  box-shadow: ${({ $inconsistent, $lowScore }) =>
     $inconsistent
       ? '0 6px 18px rgba(245, 158, 11, 0.25)'
-      : '0 4px 14px rgba(2, 6, 23, 0.08)'};
+      : $lowScore
+        ? '0 6px 18px rgba(244, 63, 94, 0.22)'
+        : '0 4px 14px rgba(2, 6, 23, 0.08)'};
   ${({ $runState }) => $runState === 'running' && css`animation: ${pulse} 1.4s ease-out infinite;`}
   transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
   box-sizing: border-box;
@@ -223,6 +225,27 @@ export const CloseButton = styled.button`
     background: #ef4444;
     transform: scale(1.1);
   }
+`;
+
+export const Preview = styled.div`
+  font-size: 11px;
+  line-height: 1.35;
+  color: #64748b;
+  margin-top: 2px;
+  max-height: 46px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+`;
+
+export const ScoreBadge = styled.span<{ $score: number }>`
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 20px;
+  color: #fff;
+  background: ${({ $score }) => ($score >= 4 ? '#10b981' : $score >= 3 ? '#f59e0b' : '#ef4444')};
 `;
 
 export const WarningWrapper = styled.span`

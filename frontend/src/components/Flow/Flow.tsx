@@ -32,7 +32,7 @@ interface FlowProps {
 }
 
 const nodeWidth = 220;
-const nodeHeight = 140;
+const nodeHeight = 165;
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));

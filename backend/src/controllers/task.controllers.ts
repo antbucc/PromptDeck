@@ -270,7 +270,9 @@ export const getTask = async (req: Request<{ id: string }>, res: Response, next:
     const { id } = req.params;
 
     try {
-        const task = await TaskModel.findById(new Types.ObjectId(id)).populate('milestones cards');
+        const task = await TaskModel.findById(new Types.ObjectId(id))
+            .populate('milestones')
+            .populate({ path: 'cards', populate: { path: 'output' } });
         if (!task) {
             return res.status(404).json({ message: 'Task not found' });
         }

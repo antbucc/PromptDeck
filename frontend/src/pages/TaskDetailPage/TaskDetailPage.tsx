@@ -51,7 +51,11 @@ const TaskDetailPage: React.FC = () => {
         const data = await fetchTaskById(id);
         setTask(data);
 
-        const newNodes = data.cards.map((card: any, index: number) => ({
+        const newNodes = data.cards.map((card: any, index: number) => {
+          const out = card.output && typeof card.output === 'object' ? card.output : null;
+          const metrics = out?.evaluationMetrics || [];
+          const avg = metrics.find((m: any) => m.type === 'Average')?.evaluationResult;
+          return {
           id: card._id,
           data: {
             id: card._id,
@@ -60,6 +64,8 @@ const TaskDetailPage: React.FC = () => {
             inconsistent: card.inconsistent,
             alternativeGroup: card.alternativeGroup,
             selected: card.selected,
+            outputPreview: out?.generatedText ? String(out.generatedText).replace(/\s+/g, ' ').trim().slice(0, 160) : '',
+            avgScore: typeof avg === 'number' ? avg : null,
             onExecute: handleExecute,
             onDelete: handleDelete,
             onCardUpdate: handleCardUpdate,
@@ -69,7 +75,8 @@ const TaskDetailPage: React.FC = () => {
           position: { x: 200 * index, y: 100 },
           type: 'cardNode',
           draggable: true,
-        }));
+        };
+        });
         setNodes(newNodes);
 
         const newEdges: Edge[] = [];
