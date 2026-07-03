@@ -7,7 +7,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { GenerativeModels } from '../types/GenerativeModels';
 import { evaluateWithClaude } from './claude.services';
 import { evaluateWithOllama } from './ollama.services';
-import { CLAUDE_EVAL_MODEL, OLLAMA_EVAL_MODEL } from '../utils/secrets';
+import { evaluateWithGroq } from './groq.services';
+import { CLAUDE_EVAL_MODEL, OLLAMA_EVAL_MODEL, GROQ_EVAL_MODEL } from '../utils/secrets';
 
 interface EvaluationResult {
     relevance_score: number;
@@ -37,6 +38,9 @@ export async function evaluateCardOutput(cardId: string): Promise<EvaluationResu
     }
     if (provider === 'ollama') {
         return evaluateWithOllama({ answer, context, question: prompt }, OLLAMA_EVAL_MODEL);
+    }
+    if (provider === 'groq') {
+        return evaluateWithGroq({ answer, context, question: prompt }, GROQ_EVAL_MODEL);
     }
 
     const evaluationInput = {

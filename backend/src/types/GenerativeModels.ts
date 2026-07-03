@@ -1,7 +1,7 @@
 // src/types/GenerativeModels.ts
 import { GPT_3_5_TURBO_MODEL_NAME, GPT_4_MODEL_NAME } from '../utils/secrets';
 
-export type ModelProvider = 'openai' | 'anthropic' | 'ollama';
+export type ModelProvider = 'openai' | 'anthropic' | 'ollama' | 'groq';
 
 export class GenerativeModels {
     // Maps a card's generativeModel key to the concrete model identifier:
@@ -12,7 +12,9 @@ export class GenerativeModels {
         CLAUDE_OPUS_4_8: 'claude-opus-4-8',
         CLAUDE_SONNET_4_6: 'claude-sonnet-4-6',
         CLAUDE_HAIKU_4_5: 'claude-haiku-4-5',
-        LLAMA_3_1: 'llama3.1:8b'
+        LLAMA_3_1: 'llama3.1:8b',
+        GROQ_LLAMA_3_3_70B: 'llama-3.3-70b-versatile',
+        GROQ_LLAMA_3_1_8B: 'llama-3.1-8b-instant'
     };
 
     // Maps each model key to the provider that serves it.
@@ -22,13 +24,17 @@ export class GenerativeModels {
         CLAUDE_OPUS_4_8: 'anthropic',
         CLAUDE_SONNET_4_6: 'anthropic',
         CLAUDE_HAIKU_4_5: 'anthropic',
-        LLAMA_3_1: 'ollama'
+        LLAMA_3_1: 'ollama',
+        GROQ_LLAMA_3_3_70B: 'groq',
+        GROQ_LLAMA_3_1_8B: 'groq'
     };
 
     // UI-facing catalog: display label, serving provider, and whether the model
     // is free (no API key required). Order controls display order within a group.
     static readonly Catalog: { value: string; label: string; provider: ModelProvider; free: boolean }[] = [
         { value: 'LLAMA_3_1', label: 'Llama 3.1 (local)', provider: 'ollama', free: true },
+        { value: 'GROQ_LLAMA_3_3_70B', label: 'Llama 3.3 70B (Groq cloud)', provider: 'groq', free: true },
+        { value: 'GROQ_LLAMA_3_1_8B', label: 'Llama 3.1 8B (Groq cloud)', provider: 'groq', free: true },
         { value: 'CLAUDE_OPUS_4_8', label: 'Claude Opus 4.8', provider: 'anthropic', free: false },
         { value: 'CLAUDE_SONNET_4_6', label: 'Claude Sonnet 4.6', provider: 'anthropic', free: false },
         { value: 'CLAUDE_HAIKU_4_5', label: 'Claude Haiku 4.5', provider: 'anthropic', free: false },

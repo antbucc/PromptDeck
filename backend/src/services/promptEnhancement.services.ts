@@ -3,6 +3,7 @@
 import { openai } from '../config/openai.client';
 import { GenerativeModels } from '../types/GenerativeModels';
 import { ollamaChat } from './ollama.services';
+import { groqChat } from './groq.services';
 import { claudeChat } from './claude.services';
 import { GPT_4_MODEL_NAME } from '../utils/secrets';
 
@@ -30,6 +31,9 @@ export const enhancePrompt = async (prompt: string, generativeModel?: string): P
     try {
         if (provider === 'ollama') {
             return await ollamaChat(modelName, systemPrompt, prompt);
+        }
+        if (provider === 'groq') {
+            return await groqChat(modelName, systemPrompt, prompt);
         }
         if (provider === 'anthropic') {
             return await claudeChat(modelName, systemPrompt, prompt);

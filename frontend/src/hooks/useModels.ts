@@ -5,7 +5,7 @@ import { fetchModels } from '../services/api';
 export interface ModelInfo {
     value: string;
     label: string;
-    provider: 'ollama' | 'anthropic' | 'openai';
+    provider: 'ollama' | 'anthropic' | 'openai' | 'groq';
     free: boolean;
     available: boolean;
 }
@@ -19,7 +19,9 @@ export interface ModelGroup {
 // Fallback used before the API responds (or if it fails), so dropdowns are never empty.
 const FALLBACK_GROUPS: ModelGroup[] = [
     { id: 'free', label: 'Free (no API key)', models: [
-        { value: 'LLAMA_3_1', label: 'Llama 3.1 (local)', provider: 'ollama', free: true, available: true }
+        { value: 'LLAMA_3_1', label: 'Llama 3.1 (local)', provider: 'ollama', free: true, available: true },
+        { value: 'GROQ_LLAMA_3_3_70B', label: 'Llama 3.3 70B (Groq cloud)', provider: 'groq', free: true, available: false },
+        { value: 'GROQ_LLAMA_3_1_8B', label: 'Llama 3.1 8B (Groq cloud)', provider: 'groq', free: true, available: false }
     ] },
     { id: 'paid', label: 'Requires API key', models: [
         { value: 'CLAUDE_OPUS_4_8', label: 'Claude Opus 4.8', provider: 'anthropic', free: false, available: false },

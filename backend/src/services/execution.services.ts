@@ -4,6 +4,7 @@ import { generatePrompt } from '../utils/prompt.utils';
 import { GenerativeModels } from '../types/GenerativeModels';
 import { generateWithClaude } from './claude.services';
 import { generateWithOllama } from './ollama.services';
+import { generateWithGroq } from './groq.services';
 
 export const executeCard = async (
     card: ICard, // Use the Mongoose document type
@@ -31,6 +32,12 @@ export const executeCard = async (
     // Route local open models to the Ollama service.
     if (provider === 'ollama') {
         const generatedText = await generateWithOllama(modelName, prompt);
+        return { generatedText };
+    }
+
+    // Route Groq-hosted open models (free, cloud) to the Groq service.
+    if (provider === 'groq') {
+        const generatedText = await generateWithGroq(modelName, prompt);
         return { generatedText };
     }
 

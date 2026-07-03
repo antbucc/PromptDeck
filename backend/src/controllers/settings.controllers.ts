@@ -8,6 +8,7 @@ import {
     resolveAnthropicKey,
     isOpenAIConfigured,
     isOllamaReachable,
+    isGroqConfigured,
     maskKey
 } from '../services/settings.services';
 
@@ -58,7 +59,8 @@ export const getModels = async (req: Request, res: Response, next: NextFunction)
         const availabilityByProvider: Record<ModelProvider, boolean> = {
             ollama: ollamaUp,
             anthropic: !!anthropicKey,
-            openai: isOpenAIConfigured()
+            openai: isOpenAIConfigured(),
+            groq: isGroqConfigured()
         };
 
         const models = GenerativeModels.Catalog.map((m) => ({

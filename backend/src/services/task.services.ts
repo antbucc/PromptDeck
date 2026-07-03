@@ -3,6 +3,7 @@ import { ITask } from '../models/task.models'; // Import the Mongoose document t
 import { generateCardSequencePrompt } from '../utils/prompt.utils'; // Adjust the import according to your utils structure
 import { GenerativeModels } from '../types/GenerativeModels';
 import { ollamaChat } from './ollama.services';
+import { groqChat } from './groq.services';
 import { claudeChat } from './claude.services';
 
 const TASK_SYSTEM_PROMPT =
@@ -41,6 +42,8 @@ export const generateTask = async (
         let rawText: string;
         if (provider === 'ollama') {
             rawText = await ollamaChat(modelName, TASK_SYSTEM_PROMPT, prompt, true);
+        } else if (provider === 'groq') {
+            rawText = await groqChat(modelName, TASK_SYSTEM_PROMPT, prompt, true);
         } else if (provider === 'anthropic') {
             rawText = await claudeChat(modelName, TASK_SYSTEM_PROMPT, prompt);
         } else {

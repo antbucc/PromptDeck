@@ -5,7 +5,8 @@ import {
     ANTHROPIC_API_KEY,
     AZURE_OPENAI_API_KEY,
     AZURE_OPENAI_ENDPOINT,
-    OLLAMA_BASE_URL
+    OLLAMA_BASE_URL,
+    GROQ_API_KEY
 } from '../utils/secrets';
 
 // Fetch the singleton settings document, creating it on first use.
@@ -39,6 +40,9 @@ const isRealAzureValue = (value: string | undefined): boolean =>
 
 export const isOpenAIConfigured = (): boolean =>
     isRealAzureValue(AZURE_OPENAI_API_KEY) && isRealAzureValue(AZURE_OPENAI_ENDPOINT);
+
+// Groq (free hosted) is available when an API key is configured in the environment.
+export const isGroqConfigured = (): boolean => !!GROQ_API_KEY;
 
 // Best-effort reachability check for the local Ollama server.
 export const isOllamaReachable = async (): Promise<boolean> => {
