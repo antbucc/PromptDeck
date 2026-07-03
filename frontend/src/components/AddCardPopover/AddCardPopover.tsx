@@ -10,7 +10,10 @@ import {
   TitleBand,
 } from './AddCardPopover.styles';
 import { createCard } from '../../services/api';
-import { GENERATIVE_MODELS } from '../../config/config';
+import { useModels } from '../../hooks/useModels';
+import ModelOptions from '../ModelOptions/ModelOptions';
+import StructuredPromptHelper from '../StructuredPromptHelper/StructuredPromptHelper';
+import { STRUCTURED_CONTEXT_TEMPLATE, CONTEXT_SECTIONS } from '../../config/promptTemplate';
 
 interface AddCardPopoverProps {
   isOpen: boolean;
@@ -31,7 +34,8 @@ const AddCardPopover: React.FC<AddCardPopoverProps> = ({
   const [prompt, setPrompt] = useState('');
   const [context, setContext] = useState('');
   const [exampleOutput, setExampleOutput] = useState('');
-  const [generativeModel, setGenerativeModel] = useState(GENERATIVE_MODELS[0].value);
+  const [generativeModel, setGenerativeModel] = useState('LLAMA_3_1');
+  const { groups: modelGroups } = useModels();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -76,17 +80,24 @@ const AddCardPopover: React.FC<AddCardPopoverProps> = ({
           <FormLabel>
             Generative Model:
             <FormInput as="select" value={generativeModel} onChange={(e) => setGenerativeModel(e.target.value)}>
-              {GENERATIVE_MODELS.map(model => (
-                <option key={model.value} value={model.value}>{model.label}</option>
-              ))}
+              <ModelOptions groups={modelGroups} />
             </FormInput>
           </FormLabel>
           <FormLabel>
             Prompt:
+            <StructuredPromptHelper value={prompt} onChange={setPrompt} generativeModel={generativeModel} />
             <FormTextArea value={prompt} onChange={(e) => setPrompt(e.target.value)} required></FormTextArea>
           </FormLabel>
           <FormLabel>
             Context:
+            <StructuredPromptHelper
+              value={context}
+              onChange={setContext}
+              kind="context"
+              template={STRUCTURED_CONTEXT_TEMPLATE}
+              sections={CONTEXT_SECTIONS}
+              enableImprove={false}
+            />
             <FormTextArea value={context} onChange={(e) => setContext(e.target.value)}></FormTextArea>
           </FormLabel>
           <FormLabel>

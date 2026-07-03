@@ -18,6 +18,10 @@ export interface ICard extends Document {
     evaluated: boolean;
     inconsistent: boolean;
     plugins: string[];
+    // Non-deterministic alternatives: cards sharing the same alternativeGroup are
+    // mutually-exclusive options; only the `selected` one runs during "Run flow".
+    alternativeGroup?: string | null;
+    selected: boolean;
     createdAt: Date;
     updatedAt: Date;
     getFormattedDetails: () => Promise<{ answer: string | null, prompt: string, context: string, exampleOutput: string | undefined }>;
@@ -41,6 +45,8 @@ const cardSchema = new Schema<ICard>(
         evaluated: { type: Boolean, default: false },
         inconsistent: { type: Boolean, default: false },
         plugins: [{ type: String }],
+        alternativeGroup: { type: String, default: null },
+        selected: { type: Boolean, default: true },
     },
     {
         timestamps: true,

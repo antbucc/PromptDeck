@@ -1,4 +1,5 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
+import { gradients, colors, shadows, radius } from '../../styles/theme';
 
 export const FormContainer = styled.div`
   position: absolute;
@@ -8,9 +9,9 @@ export const FormContainer = styled.div`
   box-sizing: border-box;
   overflow-y: auto;
   z-index: 1001;
-  border: 2px solid #333;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid ${colors.borderSoft};
+  border-radius: ${radius.lg};
+  box-shadow: ${shadows.lg};
 
   &::-webkit-scrollbar {
     display: none;
@@ -33,18 +34,23 @@ export const FormInput = styled.input`
 `;
 
 export const FormButton = styled.button`
-  padding: 10px 20px;
-  background-color: orange;
-  border: 2px solid black;
-  border-radius: 5px;
+  padding: 11px 22px;
+  background: ${gradients.accent};
+  border: none;
+  border-radius: ${radius.pill};
   cursor: pointer;
-  font-size: 16px;
-  color: #000;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
   margin: 0 auto;
   display: block;
+  box-shadow: ${shadows.accent};
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 
   &:hover {
-    background-color: #e08e0b;
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+    box-shadow: 0 6px 16px rgba(255, 122, 24, 0.45);
   }
 `;
 
@@ -98,21 +104,22 @@ export const FormSelect = styled.select`
 `;
 
 export const TitleBand = styled.div`
-  background-color: orange;
+  background: ${gradients.accent};
+  color: #fff;
   width: 100%;
-  height: 40px;
+  height: 44px;
   padding: 8px 0;
-  border-bottom: 2px solid black;
-  border-color: black;
   position: absolute;
   top: 0;
   left: 0;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  border-top-left-radius: ${radius.lg};
+  border-top-right-radius: ${radius.lg};
   text-align: center;
-  font-weight: bold;
-  line-height: 40px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 44px;
   cursor: grab;
+  box-shadow: 0 1px 0 rgba(2, 6, 23, 0.06);
 `;
 
 export const LoadingModal = styled.div`
@@ -121,10 +128,14 @@ export const LoadingModal = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.92);
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 14px;
+  padding: 24px;
+  box-sizing: border-box;
   z-index: 1002;
 `;
 
@@ -132,4 +143,48 @@ export const LoadingText = styled.p`
   font-size: 18px;
   color: #000;
   font-weight: bold;
+  margin: 0;
+  text-align: center;
+`;
+
+const spin = keyframes`
+  to { transform: rotate(360deg); }
+`;
+
+export const Spinner = styled.div`
+  width: 36px;
+  height: 36px;
+  border: 4px solid #eee;
+  border-top-color: orange;
+  border-radius: 50%;
+  animation: ${spin} 0.9s linear infinite;
+`;
+
+export const ProgressTrack = styled.div`
+  width: 100%;
+  max-width: 320px;
+  height: 10px;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  overflow: hidden;
+`;
+
+export const ProgressFill = styled.div<{ $percent: number }>`
+  height: 100%;
+  width: ${({ $percent }) => Math.min(100, Math.max(0, $percent))}%;
+  background: orange;
+  transition: width 0.4s ease;
+`;
+
+export const StageText = styled.div`
+  font-size: 14px;
+  color: #333;
+  text-align: center;
+  min-height: 18px;
+`;
+
+export const ElapsedText = styled.div`
+  font-size: 12px;
+  color: #888;
 `;

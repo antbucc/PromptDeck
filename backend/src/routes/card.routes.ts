@@ -17,7 +17,10 @@ import {
     updateCard,
     addPluginToCard,
     removePluginFromCard,
-    updateCardOutput
+    updateCardOutput,
+    selectAlternative,
+    groupAlternatives,
+    ungroupAlternatives
 } from '../controllers/card.controllers';
 import checkAuth from '../middlewares/auth.middleware';
 
@@ -40,5 +43,8 @@ router.put('/:id', checkAuth, updateCard);
 router.put('/:id/plugin', checkAuth, addPluginToCard); // Updated to support multiple plugins
 router.delete('/:id/plugin', checkAuth, removePluginFromCard); // New route
 router.put('/:id/output', checkAuth, updateCardOutput);
+router.put('/:id/select-alternative', checkAuth, selectAlternative);
+router.post('/group-alternatives', checkAuth, groupAlternatives);
+router.post('/ungroup-alternatives', checkAuth, ungroupAlternatives);
 
 export default router;

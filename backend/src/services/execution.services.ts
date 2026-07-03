@@ -3,6 +3,7 @@ import { ICard } from '../models/card.models'; // Import the Mongoose document t
 import { generatePrompt } from '../utils/prompt.utils';
 import { GenerativeModels } from '../types/GenerativeModels';
 import { generateWithClaude } from './claude.services';
+import { generateWithOllama } from './ollama.services';
 
 export const executeCard = async (
     card: ICard, // Use the Mongoose document type
@@ -24,6 +25,12 @@ export const executeCard = async (
     // Route Anthropic models to the Claude service.
     if (provider === 'anthropic') {
         const generatedText = await generateWithClaude(modelName, prompt);
+        return { generatedText };
+    }
+
+    // Route local open models to the Ollama service.
+    if (provider === 'ollama') {
+        const generatedText = await generateWithOllama(modelName, prompt);
         return { generatedText };
     }
 

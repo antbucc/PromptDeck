@@ -5,6 +5,7 @@ export const GENERATIVE_MODELS = [
     { value: 'CLAUDE_OPUS_4_8', label: 'Claude Opus 4.8' },
     { value: 'CLAUDE_SONNET_4_6', label: 'Claude Sonnet 4.6' },
     { value: 'CLAUDE_HAIKU_4_5', label: 'Claude Haiku 4.5' },
+    { value: 'LLAMA_3_1', label: 'Llama 3.1 (local, free)' },
 ];
 export const MUSIC_INSTRUMENTS = [
     "AcousticGrandPiano",

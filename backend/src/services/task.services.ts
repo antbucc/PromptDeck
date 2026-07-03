@@ -2,6 +2,14 @@ import { openai } from '../config/openai.client';
 import { ITask } from '../models/task.models'; // Import the Mongoose document type
 import { generateCardSequencePrompt } from '../utils/prompt.utils'; // Adjust the import according to your utils structure
 import { GenerativeModels } from '../types/GenerativeModels';
+import { ollamaChat } from './ollama.services';
+import { claudeChat } from './claude.services';
+
+const TASK_SYSTEM_PROMPT =
+    `You are an AI assistant specialized in generating sequences of interconnected task cards based on ` +
+    `provided instructions and context. Your goal is to produce clear, concise, and comprehensive task ` +
+    `cards. Ensure each card has a distinct objective and that the flow of tasks is logical and coherent. ` +
+    `Respond with a single valid JSON object only — no markdown, no commentary.`;
 
 /**
  * Generates a task and retrieves a flow of interconnected cards.
@@ -13,12 +21,13 @@ import { GenerativeModels } from '../types/GenerativeModels';
 export const generateTask = async (
     task: ITask, // Use the Mongoose document type
     generativeModel: string
-): Promise<{ cards: Array<{ title: string; objective: string; prompt: string; context: string; exampleOutput: string; dependencies: string[] }> }> => {
+): Promise<{ cards: Array<{ title: string; objective: string; prompt: string; context: string; exampleOutput: string; dependencies: string[]; alternativeGroup?: string }> }> => {
     // Validate and get the actual model name
     if (!GenerativeModels.isValidModel(generativeModel)) {
         throw new Error(`Unsupported generative model: ${generativeModel}`);
     }
     const modelName = GenerativeModels.getModelName(generativeModel);
+    const provider = GenerativeModels.getProvider(generativeModel);
 
     // Generate the card sequence prompt using the utility function
     const prompt = await generateCardSequencePrompt(task.name, task.objective, generativeModel);
@@ -28,22 +37,23 @@ export const generateTask = async (
     }
 
     try {
-        const response = await openai.getChatCompletions(
-            modelName, // Use the actual model name
-            [
-                {
-                    role: 'system',
-                    content: `You are an AI assistant specialized in generating sequences of interconnected task cards based on provided instructions and context. Your goal is to produce clear, concise, and comprehensive task cards. Ensure each card has a distinct objective and that the flow of tasks is logical and coherent.`
-                },
-                {
-                    role: 'user',
-                    content: prompt
-                }
-            ],
-            { maxTokens: 3750, temperature: 0.7 } // Options object
-        );
-
-        const rawText = response.choices[0].message?.content?.trim() || '';
+        // Route to the provider that serves the selected model.
+        let rawText: string;
+        if (provider === 'ollama') {
+            rawText = await ollamaChat(modelName, TASK_SYSTEM_PROMPT, prompt, true);
+        } else if (provider === 'anthropic') {
+            rawText = await claudeChat(modelName, TASK_SYSTEM_PROMPT, prompt);
+        } else {
+            const response = await openai.getChatCompletions(
+                modelName, // Use the actual model name
+                [
+                    { role: 'system', content: TASK_SYSTEM_PROMPT },
+                    { role: 'user', content: prompt }
+                ],
+                { maxTokens: 3750, temperature: 0.7 } // Options object
+            );
+            rawText = response.choices[0].message?.content?.trim() || '';
+        }
 
         // Check if the response is in JSON format and remove markdown
         const jsonString = rawText.replace(/^```json|```|'''json|'''/g, '').trim();

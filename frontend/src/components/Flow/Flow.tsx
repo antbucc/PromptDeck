@@ -25,10 +25,14 @@ interface FlowProps {
   initialEdges: Edge[];
   onNodeClick: (event: React.MouseEvent, node: Node) => void;
   onExecute: (id: string) => void;
+  // Per-card step-execution state: 'queued' | 'running' | 'done' | 'error'.
+  runStates?: Record<string, string>;
+  // Reports the currently multi-selected node ids (for grouping as alternatives).
+  onSelectionChange?: (ids: string[]) => void;
 }
 
-const nodeWidth = 172;
-const nodeHeight = 36;
+const nodeWidth = 220;
+const nodeHeight = 140;
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -42,7 +46,7 @@ const edgeTypes = {
   card: CardEdge,
 };
 
-const Flow: React.FC<FlowProps> = ({ initialNodes, initialEdges, onNodeClick, onExecute }) => {
+const Flow: React.FC<FlowProps> = ({ initialNodes, initialEdges, onNodeClick, onExecute, runStates = {}, onSelectionChange }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
@@ -119,13 +123,38 @@ const Flow: React.FC<FlowProps> = ({ initialNodes, initialEdges, onNodeClick, on
   return (
     <FlowContainer>
       <ReactFlow
-        nodes={nodes}
-        edges={edges.map(edge => ({ ...edge, type: 'card', data: { onRemove: handleDeleteEdge } }))}
+        nodes={nodes.map((node) => ({
+          ...node,
+          data: { ...node.data, runState: runStates[node.id] },
+        }))}
+        edges={edges.map((edge) => {
+          // A card counts as done if it just finished this run, or was executed before.
+          const executedMap: Record<string, boolean> = {};
+          nodes.forEach((n) => { executedMap[n.id] = !!n.data?.executed; });
+          const isDone = (id: string) => runStates[id] === 'done' || executedMap[id];
+
+          let status: 'done' | 'active' | 'pending';
+          if (runStates[edge.source] === 'done' && runStates[edge.target] === 'running') {
+            status = 'active';
+          } else if (isDone(edge.source) && isDone(edge.target)) {
+            status = 'done';
+          } else {
+            status = 'pending';
+          }
+
+          return {
+            ...edge,
+            type: 'card',
+            data: { onRemove: handleDeleteEdge, status },
+            animated: status === 'active',
+          };
+        })}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onEdgesDelete={onEdgesDelete}
         onConnect={onConnect}
         onNodeClick={onNodeClick}
+        onSelectionChange={({ nodes: selNodes }) => onSelectionChange?.((selNodes || []).map((n) => n.id))}
         edgeTypes={edgeTypes}
         fitView
         fitViewOptions={{ padding: 0.2 }}

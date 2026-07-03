@@ -148,12 +148,12 @@ export async function generateCardSequencePrompt(name: string, objective: string
   const cardSequencePrompt = `
 **Instructions for Card Generation**:
 
-You are an advanced AI designed to generate a sequence of interconnected cards. Each card should contribute towards accomplishing the overall task defined by the given title and objective. Follow the guidelines below to ensure the cards are coherent, relevant, and logically structured. Depending on the task's complexity, the cards can form either a linear sequence or a more complex graph structure with branching paths and dependencies.
+You are an advanced AI designed to generate a GRAPH of interconnected cards (a DAG), not a plain linear list. Each card contributes towards the overall task defined by the given title and objective. Follow the guidelines below.
 
 ### Guidelines:
 
 1. **Number of Cards**:
-    - Generate an appropriate number of cards to comprehensively cover the task. Aim for at least 5 cards, but the exact number should be sufficient to achieve the objective.
+    - Generate an appropriate number of cards to comprehensively cover the task. Aim for at least 5 cards.
 
 2. **Card Structure**:
     Each card should include the following attributes:
@@ -161,21 +161,23 @@ You are an advanced AI designed to generate a sequence of interconnected cards. 
     - **Objective**: The specific goal of the card.
     - **Prompt**: The main prompt that the card will address.
     - **Context**: Additional context that helps in understanding the task.
-    - **Example Output**: Two example outputs to illustrate the expected results (if applicable).
-    - **Dependencies**: List any prerequisite cards that need to be completed before this card (if applicable).
+    - **Example Output**: An example output illustrating the expected result (if applicable).
+    - **Dependencies**: The list of prerequisite card titles that must complete before this card.
+    - **alternativeGroup**: (optional) a short group id shared by cards that are MUTUALLY-EXCLUSIVE alternative approaches to the same sub-goal.
 
-3. **Card Content**:
-    - Ensure each card has a clear and distinct objective that contributes to the overall task.
-    - The prompt should be specific and detailed to guide the generative model effectively.
-    - Provide sufficient context for each card to ensure clarity and relevance.
-    - Include example outputs where necessary to demonstrate the expected results.
-    - Define dependencies to establish relationships between the cards, if necessary.
+3. **Branching (make it non-linear)**:
+    - Do NOT produce a purely linear chain. The graph MUST contain at least:
+      - one **branch point**: a card that is a dependency of two or more independent cards (fan-out), and
+      - one **convergence**: a card that has two or more dependencies (fan-in).
+    - Independent sub-tasks that don't depend on each other should run in PARALLEL branches (they share a predecessor but not each other).
 
-4. **Logical Flow**:
-    - The cards should form a coherent and comprehensive approach to achieving the overall objective.
-    - Clearly define the relationships between the cards, specifying which cards are prerequisites for others.
-    - Consider creating a graph structure where cards can have multiple dependencies and branches if the task is complex. For simpler tasks, a linear sequence of cards is acceptable.
-    - Include a clear statement specifying the order of the cards and their dependencies.
+4. **Alternatives (non-determinism)**:
+    - When a sub-goal can be tackled with genuinely different approaches, emit 2–3 cards that share the SAME "alternativeGroup" id and the SAME dependencies. They are mutually-exclusive options the user will choose between.
+    - Cards in the same alternativeGroup must have distinct objectives/prompts representing the different approaches.
+
+5. **Logical Flow**:
+    - Use "dependencies" (by card title) to define the graph relationships precisely.
+    - Prefer a real graph shape (branches + convergence, and an alternativeGroup where meaningful) over a straight line.
 
 Generate the cards based on the following task:
 
@@ -365,10 +367,28 @@ Generate the cards based on the following task:
 }
 \`\`\`
 
-Generate the cards based on the given title and objective:
+**Name**: _Plan a Product Launch Campaign_
+**Objective**: _Produce a launch plan covering audience, messaging, channels and creative._
 
-**Name**: _${name}_  
-**Objective**: _${objective}_  
+\`\`\`json
+{
+  "cards": [
+    { "title": "Audience Research", "objective": "Identify the target audience and their needs.", "prompt": "Research and describe the target audience, segments and key pain points.", "context": "Foundation for the whole campaign.", "exampleOutput": "Primary segment: ...", "dependencies": [] },
+    { "title": "Messaging Strategy", "objective": "Define the core message and value proposition.", "prompt": "Define the positioning and 3 key messages based on the audience.", "context": "Uses the audience research.", "exampleOutput": "Positioning: ...", "dependencies": ["Audience Research"] },
+    { "title": "Channel Plan", "objective": "Choose the distribution channels.", "prompt": "Select and justify the marketing channels for the launch.", "context": "Runs in parallel with the creative work.", "exampleOutput": "Channels: ...", "dependencies": ["Audience Research"] },
+    { "title": "Creative — Bold & Playful", "objective": "Bold, playful creative direction.", "prompt": "Draft creative concepts in a bold, playful tone.", "context": "Alternative creative approach A.", "exampleOutput": "Concept: ...", "dependencies": ["Messaging Strategy"], "alternativeGroup": "creative-direction" },
+    { "title": "Creative — Formal & Trustworthy", "objective": "Formal, trust-building creative direction.", "prompt": "Draft creative concepts in a formal, trustworthy tone.", "context": "Alternative creative approach B.", "exampleOutput": "Concept: ...", "dependencies": ["Messaging Strategy"], "alternativeGroup": "creative-direction" },
+    { "title": "Final Launch Plan", "objective": "Assemble the complete launch plan.", "prompt": "Combine messaging, channels and the chosen creative into a launch plan.", "context": "Convergence point of the graph.", "exampleOutput": "Launch plan: ...", "dependencies": ["Channel Plan", "Messaging Strategy"] }
+  ]
+}
+\`\`\`
+
+Note how "Audience Research" branches into two parallel cards, the two "Creative — ..." cards share the alternativeGroup "creative-direction" (mutually-exclusive options), and "Final Launch Plan" converges multiple dependencies.
+
+Generate the cards based on the given title and objective (produce a real graph with branches, a convergence, and an alternativeGroup when approaches differ):
+
+**Name**: _${name}_
+**Objective**: _${objective}_
 **Generative Model**: _${generativeModel}_
 
     `;

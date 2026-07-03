@@ -6,7 +6,8 @@ import { CardModel } from '../models/card.models';
 import { v4 as uuidv4 } from 'uuid';
 import { GenerativeModels } from '../types/GenerativeModels';
 import { evaluateWithClaude } from './claude.services';
-import { CLAUDE_EVAL_MODEL } from '../utils/secrets';
+import { evaluateWithOllama } from './ollama.services';
+import { CLAUDE_EVAL_MODEL, OLLAMA_EVAL_MODEL } from '../utils/secrets';
 
 interface EvaluationResult {
     relevance_score: number;
@@ -33,6 +34,9 @@ export async function evaluateCardOutput(cardId: string): Promise<EvaluationResu
     const provider = GenerativeModels.getProvider(card.generativeModel as string);
     if (provider === 'anthropic') {
         return evaluateWithClaude({ answer, context, question: prompt }, CLAUDE_EVAL_MODEL);
+    }
+    if (provider === 'ollama') {
+        return evaluateWithOllama({ answer, context, question: prompt }, OLLAMA_EVAL_MODEL);
     }
 
     const evaluationInput = {

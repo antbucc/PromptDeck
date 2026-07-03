@@ -451,3 +451,67 @@ export const updateCardOutput = async (req: Request, res: Response, next: NextFu
         next(err);
     }
 };
+
+// Select this card as the chosen option within its alternative group,
+// deselecting all sibling alternatives.
+export const selectAlternative = async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+    const { id } = req.params;
+
+    try {
+        const card = await CardModel.findById(id).exec();
+        if (!card) {
+            return res.status(404).json({ message: 'Card not found' });
+        }
+        if (!card.alternativeGroup) {
+            return res.status(400).json({ message: 'Card is not part of an alternative group' });
+        }
+
+        await CardModel.updateMany(
+            { alternativeGroup: card.alternativeGroup, _id: { $ne: card._id } },
+            { selected: false }
+        );
+        card.selected = true;
+        await card.save();
+
+        return res.status(200).json(card);
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Mark a set of existing cards as mutually-exclusive alternatives (the first is
+// selected by default). Lets the user create decision points manually.
+export const groupAlternatives = async (req: Request<{}, any, { cardIds: string[] }>, res: Response, next: NextFunction) => {
+    const { cardIds } = req.body;
+
+    try {
+        if (!Array.isArray(cardIds) || cardIds.length < 2) {
+            return res.status(400).json({ message: 'Provide at least two card ids to group as alternatives' });
+        }
+
+        const group = `manual-${cardIds[0]}`;
+        for (let i = 0; i < cardIds.length; i++) {
+            await CardModel.findByIdAndUpdate(cardIds[i], { alternativeGroup: group, selected: i === 0 });
+        }
+
+        return res.status(200).json({ alternativeGroup: group });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Remove the given cards from any alternative group (all become selected again).
+export const ungroupAlternatives = async (req: Request<{}, any, { cardIds: string[] }>, res: Response, next: NextFunction) => {
+    const { cardIds } = req.body;
+
+    try {
+        if (!Array.isArray(cardIds) || cardIds.length === 0) {
+            return res.status(400).json({ message: 'Provide the card ids to ungroup' });
+        }
+
+        await CardModel.updateMany({ _id: { $in: cardIds } }, { alternativeGroup: null, selected: true });
+        return res.status(200).json({ ok: true });
+    } catch (err) {
+        next(err);
+    }
+};

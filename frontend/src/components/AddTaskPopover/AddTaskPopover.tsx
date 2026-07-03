@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Draggable from 'react-draggable';
 import { createTask } from '../../services/api';
-import { GENERATIVE_MODELS } from '../../config/config';
+import { useModels } from '../../hooks/useModels';
+import ModelOptions from '../ModelOptions/ModelOptions';
 import {
   FormContainer,
   FormLabel,
@@ -13,6 +14,11 @@ import {
   FormSelect,
   LoadingModal,
   LoadingText,
+  Spinner,
+  ProgressTrack,
+  ProgressFill,
+  StageText,
+  ElapsedText,
 } from './AddTaskPopover.styles'; // Reuse styles
 
 interface AddTaskPopoverProps {
@@ -29,8 +35,38 @@ const AddTaskPopover: React.FC<AddTaskPopoverProps> = ({
   const [name, setName] = useState('');
   const [objective, setObjective] = useState('');
   const [generate, setGenerate] = useState(false);
-  const [generativeModel, setGenerativeModel] = useState(GENERATIVE_MODELS[0].value);
+  const [generativeModel, setGenerativeModel] = useState('LLAMA_3_1');
+  const { groups: modelGroups } = useModels();
   const [isLoading, setIsLoading] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+
+  // Look up the selected model's metadata (label + whether it runs locally).
+  const allModels = modelGroups.flatMap((g) => g.models);
+  const selectedModel = allModels.find((m) => m.value === generativeModel);
+  const modelLabel = selectedModel?.label || generativeModel;
+  const isLocal = selectedModel?.provider === 'ollama';
+
+  // Local models are much slower; use a longer estimate so the bar paces sensibly.
+  const estimateSec = isLocal ? 80 : 25;
+
+  // Tick an elapsed-seconds counter while a task is being generated.
+  useEffect(() => {
+    if (!isLoading) {
+      setElapsed(0);
+      return;
+    }
+    const started = Date.now();
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [isLoading]);
+
+  // Asymptotic progress that approaches but never reaches 100% until done.
+  const percent = Math.min(95, Math.round(95 * (1 - Math.exp(-elapsed / (estimateSec * 0.55)))));
+  const stage =
+    percent < 15 ? 'Analyzing your objective…'
+      : percent < 45 ? 'Designing the card sequence…'
+        : percent < 85 ? `Generating cards with ${modelLabel}…`
+          : 'Linking and finalizing cards…';
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -80,9 +116,7 @@ const AddTaskPopover: React.FC<AddTaskPopoverProps> = ({
             <FormLabel>
               Generative Model:
               <FormSelect value={generativeModel} onChange={(e) => setGenerativeModel(e.target.value)}>
-                {GENERATIVE_MODELS.map(model => (
-                  <option key={model.value} value={model.value}>{model.label}</option>
-                ))}
+                <ModelOptions groups={modelGroups} />
               </FormSelect>
             </FormLabel>
           )}
@@ -90,7 +124,16 @@ const AddTaskPopover: React.FC<AddTaskPopoverProps> = ({
         </form>
         {isLoading && (
           <LoadingModal>
-            <LoadingText>Your task is being generated...</LoadingText>
+            <Spinner />
+            <LoadingText>Generating your task…</LoadingText>
+            <ProgressTrack>
+              <ProgressFill $percent={percent} />
+            </ProgressTrack>
+            <StageText>{stage}</StageText>
+            <ElapsedText>
+              {percent}% · {elapsed}s elapsed
+              {isLocal ? ' · local model, this can take ~1 minute' : ''}
+            </ElapsedText>
           </LoadingModal>
         )}
       </FormContainer>

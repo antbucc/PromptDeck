@@ -31,6 +31,15 @@ import {
   OutputSection,
   ButtonGroup,
   AddPluginButton,
+  ModelBadge,
+  GeneratedText,
+  MetricsHeading,
+  MetricsGrid,
+  MetricRow,
+  MetricName,
+  MetricBarTrack,
+  MetricBarFill,
+  MetricScore,
 } from './DraggablePopover.styles';
 import {
   executeIcon,
@@ -42,10 +51,15 @@ import {
   openNewIcon,
   loadingIcon,
   addIcon,
+  downloadIcon,
 } from '../../assets';
+import { downloadCardOutput } from '../../utils/download';
+import StructuredPromptHelper from '../StructuredPromptHelper/StructuredPromptHelper';
+import { STRUCTURED_CONTEXT_TEMPLATE, CONTEXT_SECTIONS } from '../../config/promptTemplate';
 import PluginSelector from '../PluginSelector/PluginSelector';
 import PluginSection from '../PluginSection/PluginSection';
-import { GENERATIVE_MODELS } from '../../config/config';
+import { useModels } from '../../hooks/useModels';
+import ModelOptions from '../ModelOptions/ModelOptions';
 
 interface DraggablePopoverProps {
   cardId: string;
@@ -64,6 +78,7 @@ const DraggablePopover: React.FC<DraggablePopoverProps> = ({
   onCardUpdate,
   onOpenModal // Updated to handle modal opening
 }) => {
+  const { groups: modelGroups } = useModels();
   const [card, setCard] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -202,6 +217,12 @@ const DraggablePopover: React.FC<DraggablePopoverProps> = ({
     }
   };
 
+  const handleDownloadClick = () => {
+    if (card && card.output && card.output.generatedText) {
+      downloadCardOutput(card.title || 'card-output', card.output.generatedText);
+    }
+  };
+
   const handleModalOpen = (plugin: string) => {
     onOpenModal(plugin, card);
   };
@@ -260,12 +281,10 @@ const DraggablePopover: React.FC<DraggablePopoverProps> = ({
                     value={updatedCard.generativeModel}
                     onChange={handleChange}
                   >
-                    {GENERATIVE_MODELS.map(model => (
-                      <option key={model.value} value={model.value}>{model.label}</option>
-                    ))}
+                    <ModelOptions groups={modelGroups} />
                   </select>
                 ) : (
-                  <Value>{card.generativeModel}</Value>
+                  <ModelBadge>{card.generativeModel}</ModelBadge>
                 )}
               </Section>
               <Section>
@@ -276,11 +295,18 @@ const DraggablePopover: React.FC<DraggablePopoverProps> = ({
                   <div>
                     <Label>Prompt:</Label>
                     {isEditing ? (
-                      <textarea
-                        name="prompt"
-                        value={updatedCard.prompt}
-                        onChange={handleChange}
-                      ></textarea>
+                      <>
+                        <StructuredPromptHelper
+                          value={updatedCard.prompt || ''}
+                          onChange={(next) => setUpdatedCard({ ...updatedCard, prompt: next })}
+                          generativeModel={updatedCard.generativeModel}
+                        />
+                        <textarea
+                          name="prompt"
+                          value={updatedCard.prompt}
+                          onChange={handleChange}
+                        ></textarea>
+                      </>
                     ) : (
                       <Value>
                         <ReactMarkdown>{card.prompt}</ReactMarkdown>
@@ -297,11 +323,21 @@ const DraggablePopover: React.FC<DraggablePopoverProps> = ({
                   <div>
                     <Label>Context:</Label>
                     {isEditing ? (
-                      <textarea
-                        name="context"
-                        value={updatedCard.context}
-                        onChange={handleChange}
-                      ></textarea>
+                      <>
+                        <StructuredPromptHelper
+                          value={updatedCard.context || ''}
+                          onChange={(next) => setUpdatedCard({ ...updatedCard, context: next })}
+                          kind="context"
+                          template={STRUCTURED_CONTEXT_TEMPLATE}
+                          sections={CONTEXT_SECTIONS}
+                          enableImprove={false}
+                        />
+                        <textarea
+                          name="context"
+                          value={updatedCard.context}
+                          onChange={handleChange}
+                        ></textarea>
+                      </>
                     ) : (
                       <Value>
                         <ReactMarkdown>{card.context}</ReactMarkdown>
@@ -348,6 +384,9 @@ const DraggablePopover: React.FC<DraggablePopoverProps> = ({
                   <CopyButton onClick={handleCopyClick}>
                     <img src={isCopying ? doneIcon : copyIcon} alt="Copy" />
                   </CopyButton>
+                  <CopyButton onClick={handleDownloadClick} title="Download output">
+                    <img src={downloadIcon} alt="Download" />
+                  </CopyButton>
                   <ModalButton onClick={() => handleModalOpen('output-detail')}>
                     <img src={openNewIcon} alt="Open" />
                   </ModalButton>
@@ -358,24 +397,32 @@ const DraggablePopover: React.FC<DraggablePopoverProps> = ({
                   {card.output ? (
                     <>
                       <Label>Generated Text:</Label>
-                      <Value>
+                      <GeneratedText>
                         <ReactMarkdown>{card.output.generatedText}</ReactMarkdown>
-                      </Value>
+                      </GeneratedText>
                     </>
                   ) : (
                     <Value>No output generated yet</Value>
                   )}
                 </div>
               </SectionContent>
-              {card.output && card.output.evaluationMetrics && (
+              {card.output && card.output.evaluationMetrics && card.output.evaluationMetrics.length > 0 && (
                 <Section>
-                  <h3>Evaluation Metrics</h3>
-                  {card.output.evaluationMetrics.map((metric: any) => (
-                    <div key={metric._id}>
-                      <Label>{metric.type}:</Label>
-                      <Value>{metric.evaluationResult}</Value>
-                    </div>
-                  ))}
+                  <MetricsHeading>Evaluation Metrics</MetricsHeading>
+                  <MetricsGrid>
+                    {card.output.evaluationMetrics.map((metric: any) => {
+                      const score = Number(metric.evaluationResult) || 0;
+                      return (
+                        <MetricRow key={metric._id}>
+                          <MetricName>{metric.type}</MetricName>
+                          <MetricBarTrack>
+                            <MetricBarFill $pct={(score / 5) * 100} $score={score} />
+                          </MetricBarTrack>
+                          <MetricScore>{score.toFixed(1)}</MetricScore>
+                        </MetricRow>
+                      );
+                    })}
+                  </MetricsGrid>
                 </Section>
               )}
               <Section>

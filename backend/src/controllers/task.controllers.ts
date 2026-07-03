@@ -86,10 +86,22 @@ export const createTask = async (req: Request<{}, any, CreateTaskBody>, res: Res
                 throw new Error("Invalid generated cards format");
             }
 
+            // Track which alternative groups already have a selected option.
+            const groupSeen = new Set<string>();
+
             for (const card of generatedCards) {
                 const exampleOutput = Array.isArray(card.exampleOutput)
                     ? card.exampleOutput.join(' ')
                     : card.exampleOutput;
+
+                // Namespace the group by task so ids never collide across tasks.
+                const rawGroup = card.alternativeGroup ? String(card.alternativeGroup).trim() : '';
+                const alternativeGroup = rawGroup ? `${newTask._id}:${rawGroup}` : null;
+                let selected = true;
+                if (alternativeGroup) {
+                    if (groupSeen.has(alternativeGroup)) selected = false;
+                    else groupSeen.add(alternativeGroup);
+                }
 
                 const newCard = await CardModel.create({
                     title: card.title,
@@ -105,6 +117,8 @@ export const createTask = async (req: Request<{}, any, CreateTaskBody>, res: Res
                     evaluated: false,
                     inconsistent: false,
                     plugins: [],
+                    alternativeGroup,
+                    selected,
                 });
                 cardIds.push(newCard._id);
                 cardMap[card.title] = newCard;
@@ -112,7 +126,7 @@ export const createTask = async (req: Request<{}, any, CreateTaskBody>, res: Res
 
             for (const card of generatedCards) {
                 const currentCard = cardMap[card.title];
-                for (const dependency of card.dependencies) {
+                for (const dependency of card.dependencies || []) {
                     const dependentCard = cardMap[dependency];
                     if (dependentCard) {
                         await currentCard.linkCard(dependentCard._id, 'previous');

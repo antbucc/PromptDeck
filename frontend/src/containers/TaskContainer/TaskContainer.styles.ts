@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { colors, shadows, radius } from '../../styles/theme';
 
 export const TaskContainerWrapper = styled.div`
   display: flex;
@@ -8,56 +9,78 @@ export const TaskContainerWrapper = styled.div`
 `;
 
 export const TaskItem = styled.div`
-  background: #fff;
-  border-radius: 10px;
-  padding: 16px;
-  margin: 8px 0;
+  background: ${colors.surface};
+  border-radius: ${radius.lg};
+  padding: 18px 56px 18px 22px;
+  margin: 12px 0;
   width: 100%;
+  box-sizing: border-box;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 2px solid #333;
-  position: relative; /* Ensure the delete button is positioned correctly */
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  border: 1px solid ${colors.borderSoft};
+  border-left: 4px solid ${colors.accent};
+  box-shadow: ${shadows.md};
+  position: relative;
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px);
+    box-shadow: ${shadows.lg};
   }
 
   h2 {
     margin: 0;
-    font-size: 1.5rem;
-    color: #333;
+    font-size: 1.25rem;
+    color: ${colors.ink};
   }
 
   p {
-    margin: 0.5rem 0;
-    font-size: 1rem;
-    color: #666;
+    margin: 0.4rem 0;
+    font-size: 0.95rem;
+    color: #64748b;
+  }
+
+  /* The "Number of Cards" line rendered as a subtle pill. */
+  p:last-of-type {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 10px;
+    background: #fff7ec;
+    color: ${colors.accentDark};
+    border: 1px solid #f0d9b5;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
   }
 `;
 
 export const DeleteButton = styled.button`
   position: absolute;
-  top: 50%;
+  top: 16px;
   right: 16px;
-  transform: translateY(-50%); /* Center vertically */
-  background: none;
-  border: none;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
   cursor: pointer;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;  /* Increase button size */
-  height: 40px; /* Increase button size */
+  width: 36px;
+  height: 36px;
+  transition: background 0.15s ease, transform 0.15s ease;
 
   svg {
-    fill: #ff0000;
-    width: 30px; /* Adjust icon size */
-    height: 30px; /* Adjust icon size */
+    fill: ${colors.danger};
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background: ${colors.danger};
+    transform: scale(1.05);
   }
 
   &:hover svg {
-    fill: #cc0000;
+    fill: #fff;
   }
 `;

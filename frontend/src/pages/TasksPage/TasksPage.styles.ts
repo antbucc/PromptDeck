@@ -1,28 +1,30 @@
 // src/pages/TasksPage/TasksPage.styles.ts
 import styled from 'styled-components';
+import { gradients, colors, shadows, radius } from '../../styles/theme';
 
 export const TasksPageContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #fff;
+  background: #f1f5f9;
   min-height: 100vh;
-  padding-top: 77px; /* Adjust padding to account for navbar height */
+  padding-top: 77px;
   box-sizing: border-box;
   position: relative;
 `;
 
 export const Title = styled.h1`
-  font-size: 2rem;
-  color: #333;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: ${colors.ink};
   margin: 0;
   position: fixed;
-  top: 77px; /* Adjust to be just below the navbar */
+  top: 72px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #fff;
+  background: #f1f5f9;
   z-index: 900;
-  padding: 10px 0;
+  padding: 14px 0 10px;
   width: 100%;
   text-align: center;
   box-sizing: border-box;
@@ -30,152 +32,138 @@ export const Title = styled.h1`
 
 export const TaskList = styled.div`
   width: 100%;
-  max-width: 800px;
+  max-width: 820px;
   flex: 1;
-  background-color: #fff;
   padding: 20px;
-  overflow-y: scroll;
+  overflow-y: auto;
   box-sizing: border-box;
-  border-radius: 8px;
-  margin-top: 60px; /* Adjust to provide space for title */
-  margin-bottom: 20px; /* Ensure enough space for footer and button */
-  max-height: calc(100vh - 140px); /* Adjust this value to keep space for footer */
+  margin-top: 56px;
+  margin-bottom: 20px;
+  max-height: calc(100vh - 150px);
 
-  /* Hide scrollbar for Webkit browsers */
-  &::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Hide scrollbar for other browsers */
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  &::-webkit-scrollbar { width: 8px; }
+  &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
 `;
 
 export const TaskItem = styled.div`
-  background: #fff;
-  border-radius: 10px;
-  padding: 16px;
-  margin: 12px 0;  /* Adjust this value to change spacing between items */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: ${colors.surface};
+  border-radius: ${radius.lg};
+  padding: 18px 20px 18px 22px;
+  margin: 14px 0;
+  box-shadow: ${shadows.md};
+  border: 1px solid ${colors.borderSoft};
+  border-left: 4px solid ${colors.accent};
   width: 100%;
+  box-sizing: border-box;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 2px solid #333;
+  position: relative;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 
   &:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: translateY(-3px);
+    box-shadow: ${shadows.lg};
   }
 
   h2 {
     margin: 0;
-    font-size: 1.5rem;
-    color: #333;
+    font-size: 1.25rem;
+    color: ${colors.ink};
   }
 
   p {
-    margin: 0.5rem 0;
-    font-size: 1rem;
-    color: #666;
+    margin: 0.4rem 0;
+    font-size: 0.95rem;
+    color: #64748b;
   }
 
   .highlight {
-    color: orange;
+    color: ${colors.accent};
   }
 `;
 
 export const ButtonsBox = styled.div`
-  position: absolute;
-  top: 75px;
-  right: 0px;
+  position: fixed;
+  top: 77px;
+  right: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  background-color: #333;
-  border-bottom: 2px solid black;
-  border-left: 2px solid black;
-  border-bottom-left-radius: 20px;
-  padding: 10px;
-  width: auto; /* Adjust width as needed */
-  box-shadow: inset 0 -3px 0 0 orange, inset 3px 0 0 0 orange, 0 2px 10px rgba(0, 0, 0, 0.1);
+  gap: 10px;
+  background: ${gradients.header};
+  border-bottom: 3px solid ${colors.accent};
+  border-bottom-left-radius: 22px;
+  padding: 14px;
+  box-shadow: ${shadows.md};
   box-sizing: border-box;
-  z-index: 1000; /* Ensure it is above other elements */
+  z-index: 1000;
 `;
 
-export const RoundButton = styled.button`
-  background-color: orange;
-  border: 2px solid black;
+const roundButton = `
+  border: none;
   border-radius: 50%;
-  width: 60px;
-  height: 60px;
+  width: 54px;
+  height: 54px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
-  color: black;
-  margin-bottom: 10px; /* Add space between the buttons */
+  box-shadow: 0 4px 12px rgba(255, 122, 24, 0.4);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  .icon { fill: #fff; width: 22px; height: 22px; }
+`;
+
+export const RoundButton = styled.button`
+  ${roundButton}
+  background: ${gradients.accent};
 
   &:hover {
-    background-color: #e08e0b;
-  }
-
-  .icon {
-    fill: black; /* Ensure the SVG icon is black */
-    width: 24px; /* Adjust size as needed */
-    height: 24px; /* Adjust size as needed */
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: 0 6px 16px rgba(255, 122, 24, 0.5);
   }
 `;
 
 export const ToggleButton = styled.button`
-  background-color: orange;
-  border: 2px solid black;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  color: black;
+  ${roundButton}
+  background: ${gradients.accent};
 
   &:disabled {
-    background-color: #ccc;
+    background: #94a3b8;
+    box-shadow: none;
     cursor: not-allowed;
   }
 
   &:hover:enabled {
-    background-color: #e08e0b;
-  }
-
-  .icon {
-    fill: black; /* Ensure the SVG icon is black */
-    width: 24px; /* Adjust size as needed */
-    height: 24px; /* Adjust size as needed */
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: 0 6px 16px rgba(255, 122, 24, 0.5);
   }
 `;
 
 export const Section = styled.div`
-  background: #fff;
-  border-radius: 10px;
-  padding: 16px;
-  margin: 12px 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: ${colors.surface};
+  border-radius: ${radius.lg};
+  padding: 20px 22px;
+  margin: 14px 0;
+  box-shadow: ${shadows.md};
+  border: 1px solid ${colors.borderSoft};
   width: 100%;
   box-sizing: border-box;
+
+  ul { padding-left: 20px; }
+  li { margin-bottom: 4px; color: #475569; }
+  h4 { margin: 14px 0 6px; color: ${colors.ink}; }
 `;
 
 export const SectionTitle = styled.h2`
   margin: 0 0 10px 0;
-  font-size: 1.5rem;
-  color: #333;
+  font-size: 1.25rem;
+  color: ${colors.ink};
 `;
 
 export const SectionContent = styled.div`
-  font-size: 1rem;
-  color: #666;
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.5;
 `;
 
 export const Footer = styled.div`

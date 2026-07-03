@@ -5,6 +5,58 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
+// --- Models & provider settings ---
+
+export const fetchModels = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/settings/models`);
+        return response.data; // { models, groups }
+    } catch (error) {
+        console.error('Error fetching models:', error);
+        throw error;
+    }
+};
+
+export const fetchSettings = async () => {
+    try {
+        const response = await axios.get(`${API_URL}/settings`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching settings:', error);
+        throw error;
+    }
+};
+
+export const updateSettings = async (patch: { anthropicApiKey?: string }) => {
+    try {
+        const response = await axios.put(`${API_URL}/settings`, patch);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating settings:', error);
+        throw error;
+    }
+};
+
+export const enhancePrompt = async (prompt: string, generativeModel?: string): Promise<string> => {
+    const response = await axios.post(`${API_URL}/promptEnhancement/enhance`, { prompt, generativeModel });
+    return response.data.enhancedPrompt;
+};
+
+export const selectAlternative = async (cardId: string) => {
+    const response = await axios.put(`${API_URL}/cards/${cardId}/select-alternative`);
+    return response.data;
+};
+
+export const groupAlternatives = async (cardIds: string[]) => {
+    const response = await axios.post(`${API_URL}/cards/group-alternatives`, { cardIds });
+    return response.data;
+};
+
+export const ungroupAlternatives = async (cardIds: string[]) => {
+    const response = await axios.post(`${API_URL}/cards/ungroup-alternatives`, { cardIds });
+    return response.data;
+};
+
 export const fetchTasks = async () => {
     try {
         const response = await axios.get(`${API_URL}/tasks`);

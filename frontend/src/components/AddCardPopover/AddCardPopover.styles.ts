@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { gradients, colors, shadows, radius } from '../../styles/theme';
 
 export const FormContainer = styled.div`
   position: absolute;
@@ -9,9 +10,9 @@ export const FormContainer = styled.div`
   box-sizing: border-box;
   overflow-y: auto;
   z-index: 1001; /* Higher z-index to ensure it's on top of the flow */
-  border: 2px solid #333; /* Optional: border for better visibility */
-  border-radius: 10px; /* Optional: rounded corners */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: shadow for depth */
+  border: 1px solid ${colors.borderSoft};
+  border-radius: ${radius.lg};
+  box-shadow: ${shadows.lg};
 
   /* Hide scrollbar for Webkit browsers */
   &::-webkit-scrollbar {
@@ -45,18 +46,23 @@ export const FormTextArea = styled.textarea`
 `;
 
 export const FormButton = styled.button`
-  padding: 10px 20px;
-  background-color: orange; /* Orange background color */
-  border: 2px solid black; /* Black border */
-  border-radius: 5px;
+  padding: 11px 22px;
+  background: ${gradients.accent};
+  border: none;
+  border-radius: ${radius.pill};
   cursor: pointer;
-  font-size: 16px;
-  color: #000;
-  margin: 0 auto; /* Center align the button */
-  display: block; /* Ensure the button takes only the necessary space */
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 auto;
+  display: block;
+  box-shadow: ${shadows.accent};
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 
   &:hover {
-    background-color: #e08e0b; /* Darker orange on hover */
+    transform: translateY(-1px);
+    filter: brightness(1.03);
+    box-shadow: 0 6px 16px rgba(255, 122, 24, 0.45);
   }
 `;
 
@@ -120,20 +126,20 @@ export const DropdownMenu = styled.div<DropdownMenuProps>`
 `;
 
 export const TitleBand = styled.div`
-  background-color: orange;
+  background: ${gradients.accent};
+  color: #fff;
   width: 100%;
-  height: 40px; /* Adjust height if needed */
+  height: 44px;
   padding: 8px 0;
-  border-bottom: 2px solid black;
-  border-color: black;
   position: absolute;
   top: 0;
   left: 0;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  border-top-left-radius: ${radius.lg};
+  border-top-right-radius: ${radius.lg};
   text-align: center;
-  font-weight: bold;
-  line-height: 40px; /* Center align text vertically */
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  line-height: 44px;
   cursor: grab;
-  
+  box-shadow: 0 1px 0 rgba(2, 6, 23, 0.06);
 `;

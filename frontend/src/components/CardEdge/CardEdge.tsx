@@ -33,7 +33,7 @@ const CardEdge = ({
 
   return (
     <>
-      <EdgePath id={id} className="react-flow__edge-path" d={edgePath} />
+      <EdgePath id={id} className="react-flow__edge-path" d={edgePath} $status={data?.status} />
       <foreignObject
         width={10}
         height={10}

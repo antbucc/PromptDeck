@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Handle, Position } from 'react-flow-renderer';
-import { CardContainer, TitleBand, StatusDot, ExecuteButton, StatusContainer, LoadingIcon, CloseButton, WarningIcon } from './CardNode.styles';
+import { CardContainer, TitleBand, StatusDot, StatusLabel, ExecuteButton, StatusContainer, LoadingIcon, CloseButton, WarningIcon, WarningWrapper, RunOverlay, RunSpinner, StepBadge, AltBar, AltBadge, ChooseButton } from './CardNode.styles';
 import { executeIcon, warningIcon, loadingIcon } from '../../assets';
 import { executeCard, deleteCard } from '../../services/api';
 
@@ -15,7 +15,11 @@ interface CardNodeProps {
     onExecute: (id: string) => void;
     onUpdate: (updatedCard: any) => void;
     onDelete: (id: string) => void;
+    onSelectAlternative?: (id: string) => void;
     taskId: string;
+    runState?: 'queued' | 'running' | 'done' | 'error';
+    alternativeGroup?: string | null;
+    selected?: boolean;
   };
 }
 
@@ -48,16 +52,50 @@ const CardNode: React.FC<CardNodeProps> = ({ data }) => {
     }
   };
 
+  // While a single re-execution is in flight, present the card as "running" so
+  // the old "Executed" status is replaced by a clear re-activating indicator.
+  const runState = data.runState || (isExecuting ? 'running' : undefined);
+  const isAlternative = !!data.alternativeGroup;
+  const dimmed = isAlternative && data.selected === false;
+
   return (
-    <CardContainer>
-      <TitleBand>{data.title}</TitleBand>
+    <CardContainer $inconsistent={data.inconsistent} $runState={runState} $dimmed={dimmed}>
+      <TitleBand title={data.title}>{data.title}</TitleBand>
       <CloseButton onClick={handleDelete}>×</CloseButton>
-      {data.inconsistent && <WarningIcon src={warningIcon} alt="Inconsistent" />}
+      {runState && (
+        <StepBadge $state={runState}>
+          {runState === 'done' ? '✓' : runState === 'error' ? '!' : runState === 'running' ? '▶' : '•'}
+        </StepBadge>
+      )}
+      {runState === 'running' && (
+        <RunOverlay>
+          <RunSpinner />
+          {data.executed ? 'Re-running…' : 'Running…'}
+        </RunOverlay>
+      )}
+      {data.inconsistent && (
+        <WarningWrapper data-tooltip="Output non aggiornato: gli input (prompt, contesto o una card precedente) sono cambiati dopo l'ultima esecuzione. Riesegui la card per aggiornarlo.">
+          <WarningIcon src={warningIcon} alt="Inconsistent" />
+        </WarningWrapper>
+      )}
+      {isAlternative && (
+        <AltBar>
+          <AltBadge $selected={!!data.selected}>{data.selected ? '✓ Chosen' : 'Alternative'}</AltBadge>
+          {!data.selected && (
+            <ChooseButton onClick={(e) => { e.stopPropagation(); data.onSelectAlternative?.(data.id); }}>
+              Choose
+            </ChooseButton>
+          )}
+        </AltBar>
+      )}
       <StatusContainer>
         <ExecuteButton onClick={handleExecute} data-tooltip="Execute Card" disabled={isExecuting}>
           {isExecuting ? <LoadingIcon src={loadingIcon} alt="Loading" /> : <img src={executeIcon} alt="Execute" />}
         </ExecuteButton>
-        <StatusDot status={data.executed ? 'executed' : 'not-executed'} />
+        <StatusDot $status={data.executed ? 'executed' : 'not-executed'} />
+        <StatusLabel $status={data.executed ? 'executed' : 'not-executed'}>
+          {data.executed ? 'Executed' : 'Pending'}
+        </StatusLabel>
       </StatusContainer>
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />

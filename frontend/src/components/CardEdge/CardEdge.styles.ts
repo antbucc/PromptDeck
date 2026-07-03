@@ -1,6 +1,6 @@
 // src/components/CardEdge/CardEdge.styles.ts
 
-import styled, { keyframes } from 'styled-components';
+import styled, { keyframes, css } from 'styled-components';
 
 const dashAnimation = keyframes`
   to {
@@ -15,12 +15,19 @@ export const EdgeButton = styled.img`
   background-color: red;
 `;
 
-export const EdgePath = styled.path`
-  stroke: #000000;
-  stroke-width: 2;
-  stroke-dasharray: 10;
-  stroke-dashoffset: 20;
-  animation: ${dashAnimation} 2s linear infinite;
+// Edge appearance reflects the flow execution:
+//  - done    : both endpoints executed → solid green
+//  - active  : currently being traversed → animated blue
+//  - pending : still to be executed → static grey dashed
+export const EdgePath = styled.path<{ $status?: string }>`
+  fill: none;
+  stroke: ${({ $status }) =>
+    $status === 'done' ? '#10b981' : $status === 'active' ? '#3b82f6' : '#cbd5e1'};
+  stroke-width: ${({ $status }) => ($status === 'active' ? 3 : 2.5)};
+  stroke-dasharray: ${({ $status }) => ($status === 'done' ? 'none' : '8')};
+  stroke-dashoffset: 16;
+  animation: ${({ $status }) =>
+    $status === 'active' ? css`${dashAnimation} 0.7s linear infinite` : 'none'};
 `;
 
 export const PopoverContainer = styled.div`

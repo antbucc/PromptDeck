@@ -10,6 +10,7 @@ import {
   ButtonGroup,
 } from './ABCConverterPluginContainer.styles';
 import { copyIcon, doneIcon } from '../../assets';
+import { downloadDataUri, safeFileName } from '../../utils/download';
 
 interface ABCConverterContainerProps {
   card: any;
@@ -90,6 +91,36 @@ const ABCConverterContainer: React.FC<ABCConverterContainerProps> = ({ card }) =
     }
   };
 
+  const baseName = safeFileName(card.title || 'music', 'music');
+
+  // Export the rendered audio as an uncompressed WAV file via the abcjs synth.
+  const handleDownloadWav = async () => {
+    try {
+      const synth = abcjsAudioSynthRef.current;
+      if (!synth) return;
+      await synth.prime(); // ensure the audio buffer is rendered
+      if (abcjsControlRef.current && typeof abcjsControlRef.current.download === 'function') {
+        abcjsControlRef.current.download(`${baseName}.wav`);
+      } else if (typeof synth.download === 'function') {
+        synth.download();
+      }
+    } catch (err) {
+      console.error('WAV download failed:', err);
+    }
+  };
+
+  // Export the tune as a standard MIDI file.
+  const handleDownloadMidi = () => {
+    try {
+      const midi = abcjs.synth.getMidiFile(abcCode, { midiOutputType: 'encoded' });
+      if (typeof midi === 'string') {
+        downloadDataUri(`${baseName}.mid`, midi);
+      }
+    } catch (err) {
+      console.error('MIDI download failed:', err);
+    }
+  };
+
   return (
     <ABCConverterContainerWrapper>
       <h2>Refined ABC Notation</h2>
@@ -104,6 +135,14 @@ const ABCConverterContainer: React.FC<ABCConverterContainerProps> = ({ card }) =
       <h3>Music Representation</h3>
       <div id="abcjs-container" />
       <div id="abcjs-audio-controls" />
+      <ButtonGroup style={{ marginTop: '10px', gap: '8px' }}>
+        <button type="button" onClick={handleDownloadWav} title="Download audio as WAV">
+          ⬇ Download audio (WAV)
+        </button>
+        <button type="button" onClick={handleDownloadMidi} title="Download as MIDI">
+          ⬇ Download MIDI
+        </button>
+      </ButtonGroup>
     </ABCConverterContainerWrapper>
   );
 };

@@ -12,7 +12,8 @@ import {
   SaveButton,
   TextArea // Import the TextArea component
 } from './OutputDetailContainer.styles';
-import { copyIcon, doneIcon, editIcon } from '../../assets';
+import { copyIcon, doneIcon, editIcon, downloadIcon } from '../../assets';
+import { downloadCardOutput } from '../../utils/download';
 
 interface OutputDetailContainerProps {
   card: any;
@@ -71,6 +72,10 @@ const OutputDetailContainer: React.FC<OutputDetailContainerProps> = ({ card }) =
     setEditedOutput(e.target.value);
   };
 
+  const handleDownloadClick = () => {
+    downloadCardOutput(card.title || 'card-output', output);
+  };
+
   return (
     <ModalContent>
       <ToggleContainer>
@@ -87,6 +92,9 @@ const OutputDetailContainer: React.FC<OutputDetailContainerProps> = ({ card }) =
       <ButtonContainer>
         <CopyButton onClick={handleCopyClick}>
           <img src={isCopying ? doneIcon : copyIcon} alt="Copy" />
+        </CopyButton>
+        <CopyButton onClick={handleDownloadClick} title="Download output">
+          <img src={downloadIcon} alt="Download" />
         </CopyButton>
         {isEditing ? (
           <SaveButton onClick={handleSaveClick}>

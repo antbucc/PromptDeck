@@ -40,10 +40,24 @@ const extractText = (message: Anthropic.Message): string =>
         .trim();
 
 /**
+ * Generic chat completion against a Claude model with a custom system prompt.
+ */
+export const claudeChat = async (modelName: string, system: string, user: string): Promise<string> => {
+    const client = await getAnthropicClient();
+    const response = await client.messages.create({
+        model: modelName,
+        max_tokens: 4096,
+        system,
+        messages: [{ role: 'user', content: user }]
+    });
+    return extractText(response);
+};
+
+/**
  * Generate a card's output using a Claude model.
  */
 export const generateWithClaude = async (modelName: string, prompt: string): Promise<string> => {
-    const client = getAnthropicClient();
+    const client = await getAnthropicClient();
 
     try {
         const response = await client.messages.create({
@@ -68,7 +82,7 @@ export const evaluateWithClaude = async (
     input: EvaluationInput,
     modelName: string
 ): Promise<EvaluationOutput> => {
-    const client = getAnthropicClient();
+    const client = await getAnthropicClient();
 
     const userContent =
         `Question:\n${input.question}\n\n` +

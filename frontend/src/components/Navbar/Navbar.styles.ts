@@ -1,28 +1,36 @@
 // src/components/Navbar/Navbar.styles.ts
 import styled from 'styled-components';
-
+import { gradients, colors, shadows } from '../../styles/theme';
 
 export const NavbarContainer = styled.nav`
   width: 100%;
-  background-color: #333;
-  padding: 27px 30px; /* Adjust padding to maintain overall height */
+  background: ${gradients.header};
+  padding: 18px 30px;
   position: fixed;
   top: 0;
   left: 0;
-  border-bottom: 3px solid black; 
-  box-shadow: inset 0 -3px 0 0 orange;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: ${shadows.md};
+  border-bottom: 3px solid ${colors.accent};
   z-index: 1000;
+  box-sizing: border-box;
 `;
 
 export const NavLink = styled.a`
-  color: #fff;
+  color: ${colors.textLight};
   text-decoration: none;
-  font-size: 16px;
-  margin: 0 15px;
-  transition: color 0.3s ease;
-  display: inline-block; /* Inline-block to avoid flexbox */
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: background 0.2s ease, color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
 
   &:hover {
-    color: orange;
+    background: rgba(255, 255, 255, 0.1);
+    color: ${colors.accentLight};
   }
 `;
