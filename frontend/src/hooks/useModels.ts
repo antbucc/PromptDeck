@@ -20,7 +20,8 @@ export interface ModelGroup {
 // Grouped by provider so the choice between Ollama and Groq is explicit.
 const FALLBACK_GROUPS: ModelGroup[] = [
     { id: 'ollama', label: 'Ollama — local (free)', models: [
-        { value: 'LLAMA_3_1', label: 'Llama 3.1 (local)', provider: 'ollama', free: true, available: true }
+        { value: 'LLAMA_3_2_1B', label: 'Llama 3.2 1B (local, light)', provider: 'ollama', free: true, available: true },
+        { value: 'LLAMA_3_1', label: 'Llama 3.1 8B (local)', provider: 'ollama', free: true, available: true }
     ] },
     { id: 'groq', label: 'Groq — cloud (free)', models: [
         { value: 'GROQ_LLAMA_3_3_70B', label: 'Llama 3.3 70B (Groq cloud)', provider: 'groq', free: true, available: false },

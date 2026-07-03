@@ -13,6 +13,7 @@ export class GenerativeModels {
         CLAUDE_SONNET_4_6: 'claude-sonnet-4-6',
         CLAUDE_HAIKU_4_5: 'claude-haiku-4-5',
         LLAMA_3_1: 'llama3.1:8b',
+        LLAMA_3_2_1B: 'llama3.2:1b',
         GROQ_LLAMA_3_3_70B: 'llama-3.3-70b-versatile',
         GROQ_LLAMA_3_1_8B: 'llama-3.1-8b-instant'
     };
@@ -25,6 +26,7 @@ export class GenerativeModels {
         CLAUDE_SONNET_4_6: 'anthropic',
         CLAUDE_HAIKU_4_5: 'anthropic',
         LLAMA_3_1: 'ollama',
+        LLAMA_3_2_1B: 'ollama',
         GROQ_LLAMA_3_3_70B: 'groq',
         GROQ_LLAMA_3_1_8B: 'groq'
     };
@@ -32,7 +34,8 @@ export class GenerativeModels {
     // UI-facing catalog: display label, serving provider, and whether the model
     // is free (no API key required). Order controls display order within a group.
     static readonly Catalog: { value: string; label: string; provider: ModelProvider; free: boolean }[] = [
-        { value: 'LLAMA_3_1', label: 'Llama 3.1 (local)', provider: 'ollama', free: true },
+        { value: 'LLAMA_3_2_1B', label: 'Llama 3.2 1B (local, light)', provider: 'ollama', free: true },
+        { value: 'LLAMA_3_1', label: 'Llama 3.1 8B (local)', provider: 'ollama', free: true },
         { value: 'GROQ_LLAMA_3_3_70B', label: 'Llama 3.3 70B (Groq cloud)', provider: 'groq', free: true },
         { value: 'GROQ_LLAMA_3_1_8B', label: 'Llama 3.1 8B (Groq cloud)', provider: 'groq', free: true },
         { value: 'CLAUDE_OPUS_4_8', label: 'Claude Opus 4.8', provider: 'anthropic', free: false },
