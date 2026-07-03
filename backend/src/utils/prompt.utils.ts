@@ -144,7 +144,7 @@ export async function generateEnhancedPrompt(cardId: string): Promise<string> {
  * @param generativeModel - The generative model to be used.
  * @returns The generated prompt string for creating interconnected cards.
  */
-export async function generateCardSequencePrompt(name: string, objective: string, generativeModel: string): Promise<string> {
+export async function generateCardSequencePrompt(name: string, objective: string, generativeModel: string, grounding?: string): Promise<string> {
   const cardSequencePrompt = `
 **Instructions for Card Generation**:
 
@@ -390,7 +390,7 @@ Generate the cards based on the given title and objective (produce a real graph 
 **Name**: _${name}_
 **Objective**: _${objective}_
 **Generative Model**: _${generativeModel}_
-
+${grounding ? `\n**Grounding & guidance (base the cards on this — reflect the audience, background, and constraints, and especially any provided source data/documents; prefer facts from the source over invented ones):**\n${grounding}\n` : ''}
     `;
   return cardSequencePrompt.trim();
 }

@@ -21,7 +21,8 @@ const TASK_SYSTEM_PROMPT =
  */
 export const generateTask = async (
     task: ITask, // Use the Mongoose document type
-    generativeModel: string
+    generativeModel: string,
+    grounding?: string
 ): Promise<{ cards: Array<{ title: string; objective: string; prompt: string; context: string; exampleOutput: string; dependencies: string[]; alternativeGroup?: string }> }> => {
     // Validate and get the actual model name
     if (!GenerativeModels.isValidModel(generativeModel)) {
@@ -31,7 +32,7 @@ export const generateTask = async (
     const provider = GenerativeModels.getProvider(generativeModel);
 
     // Generate the card sequence prompt using the utility function
-    const prompt = await generateCardSequencePrompt(task.name, task.objective, generativeModel);
+    const prompt = await generateCardSequencePrompt(task.name, task.objective, generativeModel, grounding);
 
     if (!prompt) {
         throw new Error("Failed to generate card sequence prompt. Cannot generate output.");

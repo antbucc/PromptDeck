@@ -13,6 +13,12 @@ interface CreateTaskBody {
     cards?: string[];
     generate?: boolean;
     generativeModel?: string;
+    // Optional grounding fields used to steer AI flow generation.
+    audience?: string;
+    background?: string;
+    constraints?: string;
+    desiredOutput?: string;
+    groundingText?: string;
     importedCards?: {
         title: string;
         objective: string;
@@ -25,7 +31,17 @@ interface CreateTaskBody {
 }
 
 export const createTask = async (req: Request<{}, any, CreateTaskBody>, res: Response, next: NextFunction) => {
-    const { name, objective, milestones = [], cards = [], generate = false, generativeModel, importedCards = [] } = req.body;
+    const { name, objective, milestones = [], cards = [], generate = false, generativeModel, importedCards = [],
+        audience, background, constraints, desiredOutput, groundingText } = req.body;
+
+    // Assemble optional grounding/guidance for AI generation, capped to keep the prompt sane.
+    const groundingParts: string[] = [];
+    if (audience) groundingParts.push(`Target audience: ${audience}`);
+    if (background) groundingParts.push(`Background / context:\n${background}`);
+    if (constraints) groundingParts.push(`Constraints to respect:\n${constraints}`);
+    if (desiredOutput) groundingParts.push(`Desired output / structure:\n${desiredOutput}`);
+    if (groundingText) groundingParts.push(`Source documents — base the cards strictly on this data:\n${groundingText}`);
+    const grounding = groundingParts.join('\n\n').slice(0, 16000);
 
     try {
         // Create the new task in the database
@@ -79,7 +95,7 @@ export const createTask = async (req: Request<{}, any, CreateTaskBody>, res: Res
 
         // Handle generated cards
         if (generate && generativeModel) {
-            const generatedData = await generateTask(newTask, generativeModel);
+            const generatedData = await generateTask(newTask, generativeModel, grounding);
             const generatedCards = generatedData.cards;
 
             if (!Array.isArray(generatedCards)) {
