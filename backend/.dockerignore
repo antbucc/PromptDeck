@@ -1,7 +1,26 @@
-# ./dockerignore
+# ./.dockerignore — files excluded from the Docker build context
 
+# Dependencies & build output (reinstalled/recompiled inside the image)
 node_modules
 dist
+
+# Docker / compose files (not needed inside the image)
 Dockerfile
+.dockerignore
 docker-compose.yml
+
+# Secrets & local env
 .env
+.env.*
+
+# Version control & editor/OS cruft
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+
+# Logs & test/coverage artifacts
+*.log
+npm-debug.log*
+coverage
