@@ -124,13 +124,33 @@ export const createTask = async (req: Request<{}, any, CreateTaskBody>, res: Res
                 cardMap[card.title] = newCard;
             }
 
+            // Normalize titles so dependencies match even with different casing,
+            // surrounding whitespace, or leading list markers ("1. ", "- ").
+            const normalize = (s: any) =>
+                String(s || '').toLowerCase().trim().replace(/^[\s\-*\d.)]+/, '').replace(/\s+/g, ' ');
+            const normMap: { [key: string]: any } = {};
+            Object.keys(cardMap).forEach((t) => { normMap[normalize(t)] = cardMap[t]; });
+
+            let linksCreated = 0;
             for (const card of generatedCards) {
                 const currentCard = cardMap[card.title];
+                if (!currentCard) continue;
                 for (const dependency of card.dependencies || []) {
-                    const dependentCard = cardMap[dependency];
-                    if (dependentCard) {
+                    const dependentCard = cardMap[dependency] || normMap[normalize(dependency)];
+                    if (dependentCard && !dependentCard._id.equals(currentCard._id)) {
                         await currentCard.linkCard(dependentCard._id, 'previous');
+                        linksCreated++;
                     }
+                }
+            }
+
+            // Fallback: if the model produced no usable connections at all, chain the
+            // cards sequentially so the flow is never fully disconnected.
+            if (linksCreated === 0 && generatedCards.length > 1) {
+                for (let i = 1; i < generatedCards.length; i++) {
+                    const cur = cardMap[generatedCards[i].title];
+                    const prev = cardMap[generatedCards[i - 1].title];
+                    if (cur && prev) await cur.linkCard(prev._id, 'previous');
                 }
             }
         }
