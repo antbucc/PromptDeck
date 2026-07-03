@@ -1,4 +1,5 @@
 // src/utils/download.ts
+import { jsPDF } from 'jspdf';
 
 // Sanitize a string into a safe file name (no slashes, spaces collapsed).
 export const safeFileName = (name: string, fallback = 'output'): string => {
@@ -33,17 +34,58 @@ export const downloadDataUri = (filename: string, dataUri: string) => {
   document.body.removeChild(link);
 };
 
-// Smart download for a card's textual output: if it is a data: URI download it
-// as a binary, otherwise save it as a Markdown file named after the card.
-export const downloadCardOutput = (title: string, output: string) => {
+const FORMAT_META: Record<string, { ext: string; mime: string }> = {
+  markdown: { ext: 'md', mime: 'text/markdown' },
+  text: { ext: 'txt', mime: 'text/plain' },
+  json: { ext: 'json', mime: 'application/json' },
+  csv: { ext: 'csv', mime: 'text/csv' },
+};
+
+// Download an image (URL) — fetch to a blob when CORS allows, else open it.
+export const downloadImage = async (base: string, url: string) => {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const ext = (blob.type.split('/')[1] || 'jpg').split('+')[0];
+    triggerDownload(blob, `${safeFileName(base)}.${ext}`);
+  } catch {
+    window.open(url, '_blank');
+  }
+};
+
+// Export text/markdown content as a PDF (client-side).
+export const downloadOutputPdf = (title: string, text: string) => {
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const margin = 40;
+  const width = doc.internal.pageSize.getWidth() - margin * 2;
+  const pageH = doc.internal.pageSize.getHeight() - margin;
+  doc.setFontSize(11);
+  const lines = doc.splitTextToSize(text || '', width) as string[];
+  let y = margin;
+  for (const line of lines) {
+    if (y > pageH) { doc.addPage(); y = margin; }
+    doc.text(line, margin, y);
+    y += 15;
+  }
+  doc.save(`${safeFileName(title, 'card-output')}.pdf`);
+};
+
+// Smart download for a card's output, respecting its declared format.
+export const downloadCardOutput = (title: string, output: string, outputFormat?: string) => {
   if (!output) return;
   const base = safeFileName(title, 'card-output');
-  if (/^data:/i.test(output.trim())) {
-    // Best-effort extension from the mime type in the data URI.
-    const match = output.match(/^data:([^;,]+)/i);
-    const subtype = match ? match[1].split('/')[1] : 'bin';
-    downloadDataUri(`${base}.${subtype || 'bin'}`, output.trim());
-  } else {
-    downloadText(`${base}.md`, output, 'text/markdown');
+  const trimmed = output.trim();
+
+  if (outputFormat === 'image' || /^https?:\/\/image\.pollinations\.ai/.test(trimmed)) {
+    downloadImage(base, trimmed);
+    return;
   }
+  if (/^data:/i.test(trimmed)) {
+    const match = trimmed.match(/^data:([^;,]+)/i);
+    const subtype = match ? match[1].split('/')[1] : 'bin';
+    downloadDataUri(`${base}.${subtype || 'bin'}`, trimmed);
+    return;
+  }
+  const meta = FORMAT_META[outputFormat || 'markdown'] || FORMAT_META.markdown;
+  downloadText(`${base}.${meta.ext}`, output, meta.mime);
 };

@@ -1,4 +1,14 @@
 // src/config/config.ts
+
+// Per-card output format options.
+export const OUTPUT_FORMATS = [
+    { value: 'markdown', label: 'Markdown (rich text)' },
+    { value: 'text', label: 'Plain text' },
+    { value: 'json', label: 'JSON' },
+    { value: 'csv', label: 'CSV (table)' },
+    { value: 'image', label: 'Image (AI-generated)' },
+];
+
 export const GENERATIVE_MODELS = [
     { value: 'GPT_3_5_TURBO', label: 'GPT-3.5 Turbo' },
     { value: 'GPT_4', label: 'GPT-4' },

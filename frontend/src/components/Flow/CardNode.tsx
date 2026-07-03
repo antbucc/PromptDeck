@@ -22,11 +22,13 @@ interface CardNodeProps {
     selected?: boolean;
     outputPreview?: string;
     avgScore?: number | null;
+    outputFormat?: string;
   };
 }
 
 const CardNode: React.FC<CardNodeProps> = ({ data }) => {
   const [isExecuting, setIsExecuting] = useState(false);
+  const [imgErr, setImgErr] = useState(false);
 
   const handleExecute = async (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -94,7 +96,13 @@ const CardNode: React.FC<CardNodeProps> = ({ data }) => {
         </AltBar>
       )}
       {data.outputPreview && runState !== 'running' && (
-        <Preview title={data.outputPreview}>{data.outputPreview}</Preview>
+        data.outputFormat === 'image' ? (
+          imgErr
+            ? <Preview>🖼 image (re-run to retry)</Preview>
+            : <img src={data.outputPreview} alt="output" onError={() => setImgErr(true)} style={{ width: '100%', maxHeight: 56, objectFit: 'cover', borderRadius: 6, marginTop: 2 }} />
+        ) : (
+          <Preview title={data.outputPreview}>{data.outputPreview}</Preview>
+        )
       )}
       <StatusContainer>
         <ExecuteButton onClick={handleExecute} data-tooltip="Execute Card" disabled={isExecuting}>

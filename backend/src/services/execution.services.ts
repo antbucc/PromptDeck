@@ -13,7 +13,7 @@ export const executeCard = async (
     // The returned value is the image URL, stored as the card's output.
     if (card.outputFormat === 'image') {
         const imgPrompt = [card.objective, card.prompt].filter(Boolean).join('. ').slice(0, 600);
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(imgPrompt)}?width=1024&height=1024&nologo=true&seed=${Date.now() % 100000}`;
+        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(imgPrompt)}?width=1024&height=1024&nologo=true&model=flux&seed=${Date.now() % 100000}`;
         return { generatedText: url };
     }
 

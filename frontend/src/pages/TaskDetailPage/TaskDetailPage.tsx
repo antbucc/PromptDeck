@@ -64,7 +64,10 @@ const TaskDetailPage: React.FC = () => {
             inconsistent: card.inconsistent,
             alternativeGroup: card.alternativeGroup,
             selected: card.selected,
-            outputPreview: out?.generatedText ? String(out.generatedText).replace(/\s+/g, ' ').trim().slice(0, 160) : '',
+            outputFormat: card.outputFormat || 'markdown',
+            outputPreview: out?.generatedText
+              ? (card.outputFormat === 'image' ? out.generatedText : String(out.generatedText).replace(/\s+/g, ' ').trim().slice(0, 160))
+              : '',
             avgScore: typeof avg === 'number' ? avg : null,
             onExecute: handleExecute,
             onDelete: handleDelete,

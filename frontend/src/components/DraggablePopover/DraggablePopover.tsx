@@ -53,7 +53,10 @@ import {
   addIcon,
   downloadIcon,
 } from '../../assets';
-import { downloadCardOutput } from '../../utils/download';
+import { downloadCardOutput, downloadOutputPdf } from '../../utils/download';
+import { filesToAttachments } from '../../utils/fileText';
+import { OUTPUT_FORMATS } from '../../config/config';
+import ImageOutput from '../ImageOutput/ImageOutput';
 import StructuredPromptHelper from '../StructuredPromptHelper/StructuredPromptHelper';
 import { STRUCTURED_CONTEXT_TEMPLATE, CONTEXT_SECTIONS } from '../../config/promptTemplate';
 import PluginSelector from '../PluginSelector/PluginSelector';
@@ -219,9 +222,24 @@ const DraggablePopover: React.FC<DraggablePopoverProps> = ({
 
   const handleDownloadClick = () => {
     if (card && card.output && card.output.generatedText) {
-      downloadCardOutput(card.title || 'card-output', card.output.generatedText);
+      downloadCardOutput(card.title || 'card-output', card.output.generatedText, card.outputFormat);
     }
   };
+
+  const handlePdfClick = () => {
+    if (card && card.output && card.output.generatedText) {
+      downloadOutputPdf(card.title || 'card-output', card.output.generatedText);
+    }
+  };
+
+  const handleEditFiles = async (e: ChangeEvent<HTMLInputElement>) => {
+    const parsed = await filesToAttachments(Array.from(e.target.files || []));
+    if (parsed.length) setUpdatedCard((prev: any) => ({ ...prev, attachments: [...(prev.attachments || []), ...parsed] }));
+    e.target.value = '';
+  };
+
+  const removeEditAttachment = (i: number) =>
+    setUpdatedCard((prev: any) => ({ ...prev, attachments: (prev.attachments || []).filter((_: any, idx: number) => idx !== i) }));
 
   const handleModalOpen = (plugin: string) => {
     onOpenModal(plugin, card);
@@ -285,6 +303,41 @@ const DraggablePopover: React.FC<DraggablePopoverProps> = ({
                   </select>
                 ) : (
                   <ModelBadge>{card.generativeModel}</ModelBadge>
+                )}
+              </Section>
+              <Section>
+                <Label>Output format:</Label>
+                {isEditing ? (
+                  <select name="outputFormat" value={updatedCard.outputFormat || 'markdown'} onChange={handleChange}>
+                    {OUTPUT_FORMATS.map((f) => (
+                      <option key={f.value} value={f.value}>{f.label}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <ModelBadge>{card.outputFormat || 'markdown'}</ModelBadge>
+                )}
+              </Section>
+              <Section>
+                <Label>Input files:</Label>
+                {isEditing ? (
+                  <>
+                    <input type="file" multiple accept=".csv,.tsv,.txt,.json,.md,.xlsx,.xls" onChange={handleEditFiles} />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                      {(updatedCard.attachments || []).map((a: any, i: number) => (
+                        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#eef2f7',
+                          border: '1px solid #d7dee8', borderRadius: 16, padding: '3px 10px', fontSize: 12 }}>
+                          📄 {a.name}
+                          <span onClick={() => removeEditAttachment(i)} style={{ cursor: 'pointer', color: '#ef4444', fontWeight: 700 }}>×</span>
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <Value>
+                    {card.attachments && card.attachments.length
+                      ? card.attachments.map((a: any) => a.name).join(', ')
+                      : 'None'}
+                  </Value>
                 )}
               </Section>
               <Section>
@@ -384,9 +437,14 @@ const DraggablePopover: React.FC<DraggablePopoverProps> = ({
                   <CopyButton onClick={handleCopyClick}>
                     <img src={isCopying ? doneIcon : copyIcon} alt="Copy" />
                   </CopyButton>
-                  <CopyButton onClick={handleDownloadClick} title="Download output">
+                  <CopyButton onClick={handleDownloadClick} title={`Download output${card?.outputFormat && card.outputFormat !== 'markdown' ? ` (.${card.outputFormat === 'image' ? 'img' : card.outputFormat === 'json' ? 'json' : card.outputFormat === 'csv' ? 'csv' : 'txt'})` : ' (.md)'}`}>
                     <img src={downloadIcon} alt="Download" />
                   </CopyButton>
+                  {card?.outputFormat !== 'image' && (
+                    <CopyButton onClick={handlePdfClick} title="Download as PDF">
+                      <span style={{ fontSize: 11, fontWeight: 700 }}>PDF</span>
+                    </CopyButton>
+                  )}
                   <ModalButton onClick={() => handleModalOpen('output-detail')}>
                     <img src={openNewIcon} alt="Open" />
                   </ModalButton>
@@ -396,10 +454,18 @@ const DraggablePopover: React.FC<DraggablePopoverProps> = ({
                 <div>
                   {card.output ? (
                     <>
-                      <Label>Generated Text:</Label>
-                      <GeneratedText>
-                        <ReactMarkdown>{card.output.generatedText}</ReactMarkdown>
-                      </GeneratedText>
+                      <Label>{card.outputFormat === 'image' ? 'Generated Image:' : 'Generated Output:'}</Label>
+                      {card.outputFormat === 'image' ? (
+                        <ImageOutput src={card.output.generatedText} alt={card.title} />
+                      ) : card.outputFormat === 'json' || card.outputFormat === 'csv' ? (
+                        <GeneratedText as="pre" style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: 12 }}>
+                          {card.output.generatedText}
+                        </GeneratedText>
+                      ) : (
+                        <GeneratedText>
+                          <ReactMarkdown>{card.output.generatedText}</ReactMarkdown>
+                        </GeneratedText>
+                      )}
                     </>
                   ) : (
                     <Value>No output generated yet</Value>
