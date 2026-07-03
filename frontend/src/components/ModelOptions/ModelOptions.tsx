@@ -6,10 +6,21 @@ interface ModelOptionsProps {
     groups: ModelGroup[];
 }
 
+// Provider-specific hint shown when a model isn't currently usable.
+const unavailableHint = (provider: string): string => {
+    switch (provider) {
+        case 'ollama': return ' (start Ollama / set OLLAMA_BASE_URL)';
+        case 'groq': return ' (set GROQ_API_KEY)';
+        case 'anthropic': return ' (needs Anthropic key)';
+        case 'openai': return ' (needs Azure config)';
+        default: return ' (unavailable)';
+    }
+};
+
 /**
- * Renders grouped <optgroup> options (Free / Requires API key) for any <select>.
- * Models whose provider key isn't configured are disabled with a hint, so the
- * user can clearly see which models are usable.
+ * Renders grouped <optgroup> options (one group per provider) for any <select>.
+ * Models whose provider isn't configured/reachable are disabled with a hint,
+ * so the user can clearly see which models are usable.
  */
 const ModelOptions: React.FC<ModelOptionsProps> = ({ groups }) => {
     return (
@@ -19,9 +30,7 @@ const ModelOptions: React.FC<ModelOptionsProps> = ({ groups }) => {
                     {group.models.map((m) => (
                         <option key={m.value} value={m.value} disabled={!m.available}>
                             {m.label}
-                            {m.free ? ' — free' : ''}
-                            {!m.available && !m.free ? ' (needs API key)' : ''}
-                            {!m.available && m.free ? ' (start Ollama)' : ''}
+                            {m.available ? '' : unavailableHint(m.provider)}
                         </option>
                     ))}
                 </optgroup>

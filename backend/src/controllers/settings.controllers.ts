@@ -71,13 +71,19 @@ export const getModels = async (req: Request, res: Response, next: NextFunction)
             available: availabilityByProvider[m.provider]
         }));
 
-        return res.status(200).json({
-            models,
-            groups: [
-                { id: 'free', label: 'Free (no API key)', models: models.filter((m) => m.free) },
-                { id: 'paid', label: 'Requires API key', models: models.filter((m) => !m.free) }
-            ]
-        });
+        // Group by provider so the user explicitly picks Ollama vs Groq vs Claude vs GPT.
+        const providerGroups: { id: ModelProvider; label: string }[] = [
+            { id: 'ollama', label: 'Ollama — local (free)' },
+            { id: 'groq', label: 'Groq — cloud (free)' },
+            { id: 'anthropic', label: 'Claude — Anthropic (API key)' },
+            { id: 'openai', label: 'GPT — Azure OpenAI (API key)' }
+        ];
+
+        const groups = providerGroups
+            .map((g) => ({ id: g.id, label: g.label, models: models.filter((m) => m.provider === g.id) }))
+            .filter((g) => g.models.length > 0);
+
+        return res.status(200).json({ models, groups });
     } catch (err) {
         next(err);
     }
