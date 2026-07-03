@@ -22,6 +22,10 @@ export interface ICard extends Document {
     // mutually-exclusive options; only the `selected` one runs during "Run flow".
     alternativeGroup?: string | null;
     selected: boolean;
+    // Desired output format for this card's generation & download.
+    outputFormat?: 'markdown' | 'text' | 'json' | 'csv' | 'image';
+    // Per-card input files (extracted text) used as grounding when executing.
+    attachments?: { name: string; text: string }[];
     createdAt: Date;
     updatedAt: Date;
     getFormattedDetails: () => Promise<{ answer: string | null, prompt: string, context: string, exampleOutput: string | undefined }>;
@@ -47,6 +51,8 @@ const cardSchema = new Schema<ICard>(
         plugins: [{ type: String }],
         alternativeGroup: { type: String, default: null },
         selected: { type: Boolean, default: true },
+        outputFormat: { type: String, enum: ['markdown', 'text', 'json', 'csv', 'image'], default: 'markdown' },
+        attachments: [{ name: { type: String }, text: { type: String } }],
     },
     {
         timestamps: true,
@@ -156,7 +162,7 @@ cardSchema.pre('save', async function (next) {
     }
 
     // Check if any of the specified fields have been modified
-    const fieldsToCheck = ['objective', 'prompt', 'context', 'generativeModel', 'exampleOutput'];
+    const fieldsToCheck = ['objective', 'prompt', 'context', 'generativeModel', 'exampleOutput', 'outputFormat', 'attachments'];
     const isModified = fieldsToCheck.some(field => card.isModified(field));
 
     if (isModified) {

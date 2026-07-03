@@ -39,6 +39,15 @@ const executeAndSaveCard = async (card: ICard): Promise<ExecutionDataDocument> =
 };
 
 const evaluateAndSaveCard = async (card: ICard, executionData: ExecutionDataDocument) => {
+    // Image outputs can't be scored by the text LLM judge — skip evaluation.
+    if (card.outputFormat === 'image') {
+        executionData.evaluationMetrics = [];
+        await executionData.save();
+        card.evaluated = true;
+        await card.save();
+        return;
+    }
+
     const evaluationResults = await evaluateCardOutput(card._id.toString());
 
     executionData.evaluationMetrics = [
@@ -338,7 +347,7 @@ export const getPreviousCardsOutputsController = async (req: Request<{ id: strin
 
 export const updateCard = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { title, objective, prompt, context, exampleOutput, generativeModel, inconsistent } = req.body;
+    const { title, objective, prompt, context, exampleOutput, generativeModel, inconsistent, outputFormat, attachments } = req.body;
 
     // Validate generativeModel
     if (!GenerativeModels.isValidModel(generativeModel)) {
@@ -359,6 +368,8 @@ export const updateCard = async (req: Request, res: Response) => {
         card.exampleOutput = exampleOutput;
         card.generativeModel = generativeModel; // Include generativeModel field
         card.inconsistent = inconsistent;
+        if (outputFormat !== undefined) card.outputFormat = outputFormat;
+        if (attachments !== undefined) card.attachments = attachments;
 
         await card.save();
 

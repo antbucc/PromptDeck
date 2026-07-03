@@ -51,6 +51,17 @@ export async function generatePrompt(cardId: string): Promise<string> {
         ${exampleOutput}
     ` : '';
 
+  const attachmentsSection = (card.attachments && card.attachments.length)
+    ? `\n        ## Source Documents (ground your answer strictly on this data)\n${card.attachments.map((a: any) => `        === ${a.name} ===\n        ${a.text}`).join('\n\n')}\n`
+    : '';
+
+  const fmt = card.outputFormat || 'markdown';
+  const formatSection =
+    fmt === 'json' ? `\n        ## Output format\n        Respond with ONLY a single valid JSON value (object or array). No prose, no explanation, no markdown code fences.\n`
+      : fmt === 'csv' ? `\n        ## Output format\n        Respond with ONLY CSV: a header row followed by data rows, comma-separated. No prose, no code fences.\n`
+        : fmt === 'text' ? `\n        ## Output format\n        Respond with plain text only. No markdown.\n`
+          : '';
+
   const structuredPrompt = `
         ${instructions}
 
@@ -58,7 +69,11 @@ export async function generatePrompt(cardId: string): Promise<string> {
 
         ${contextSection}
 
+        ${attachmentsSection}
+
         ${exampleOutputSection}
+
+        ${formatSection}
 
         ## Note
         Ensure the answer is exhaustive and clear even without reading the context above. Use Markdown format for better readability.
