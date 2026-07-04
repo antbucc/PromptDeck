@@ -40,12 +40,14 @@ const FALLBACK_GROUPS: ModelGroup[] = [
 
 export const useModels = () => {
     const [groups, setGroups] = useState<ModelGroup[]>(FALLBACK_GROUPS);
+    const [defaultModel, setDefaultModel] = useState('GROQ_LLAMA_3_3_70B');
     const [loading, setLoading] = useState(true);
 
     const load = useCallback(async () => {
         try {
             const data = await fetchModels();
             if (data?.groups) setGroups(data.groups);
+            if (data?.defaultModel) setDefaultModel(data.defaultModel);
         } catch {
             // keep fallback groups
         } finally {
@@ -55,5 +57,5 @@ export const useModels = () => {
 
     useEffect(() => { load(); }, [load]);
 
-    return { groups, loading, reload: load };
+    return { groups, defaultModel, loading, reload: load };
 };

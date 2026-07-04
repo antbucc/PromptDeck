@@ -2,6 +2,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { GenerativeModels, ModelProvider } from '../types/GenerativeModels';
+import { DEFAULT_MODEL } from '../utils/secrets';
 import {
     getSettingsDoc,
     updateSettingsDoc,
@@ -83,7 +84,12 @@ export const getModels = async (req: Request, res: Response, next: NextFunction)
             .map((g) => ({ id: g.id, label: g.label, models: models.filter((m) => m.provider === g.id) }))
             .filter((g) => g.models.length > 0);
 
-        return res.status(200).json({ models, groups });
+        // Preselected model for the UI (env-configurable, e.g. LLAMA_3_1 to default to Ollama).
+        const defaultModel = DEFAULT_MODEL && GenerativeModels.isValidModel(DEFAULT_MODEL)
+            ? DEFAULT_MODEL
+            : 'GROQ_LLAMA_3_3_70B';
+
+        return res.status(200).json({ models, groups, defaultModel });
     } catch (err) {
         next(err);
     }

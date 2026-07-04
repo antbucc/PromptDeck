@@ -39,7 +39,7 @@ const AddCardPopover: React.FC<AddCardPopoverProps> = ({
   const [outputFormat, setOutputFormat] = useState('markdown');
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [generativeModel, setGenerativeModel] = useState('GROQ_LLAMA_3_3_70B');
-  const { groups: modelGroups, loading: modelsLoading } = useModels();
+  const { groups: modelGroups, loading: modelsLoading, defaultModel } = useModels();
 
   const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const parsed = await filesToAttachments(Array.from(e.target.files || []));
@@ -47,15 +47,17 @@ const AddCardPopover: React.FC<AddCardPopoverProps> = ({
     e.target.value = '';
   };
 
-  // Default to Groq 70B; only after the real model list loads, auto-correct to the
-  // first available model if the default isn't usable (skip the initial fallback).
+  // Preselect the server-configured default (env DEFAULT_MODEL) when available,
+  // otherwise fall back to the first available model.
   useEffect(() => {
     if (modelsLoading) return;
     const available = modelGroups.flatMap((g) => g.models).filter((m) => m.available);
-    if (available.length && !available.some((m) => m.value === generativeModel)) {
+    if (defaultModel && available.some((m) => m.value === defaultModel)) {
+      setGenerativeModel(defaultModel);
+    } else if (available.length && !available.some((m) => m.value === generativeModel)) {
       setGenerativeModel(available[0].value);
     }
-  }, [modelGroups, modelsLoading]);
+  }, [modelGroups, modelsLoading, defaultModel]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();

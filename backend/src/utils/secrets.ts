@@ -17,6 +17,8 @@ export const env = cleanEnv(process.env, {
     GROQ_API_KEY: str({ default: '' }),
     GROQ_BASE_URL: str({ default: 'https://api.groq.com/openai/v1' }),
     GROQ_EVAL_MODEL: str({ default: 'llama-3.1-8b-instant' }),
+    // Preselected model key in the UI (e.g. LLAMA_3_1 to default to Ollama). Empty = app default.
+    DEFAULT_MODEL: str({ default: '' }),
     EVAL_AZURE_OPENAI_API_KEY: str({ default: 'placeholder' }),
     EVAL_AZURE_OPENAI_ENDPOINT: str({ default: 'https://placeholder.openai.azure.com' }),
     EVAL_AZURE_OPENAI_API_VERSION: str({ default: '2024-02-15-preview' }),
@@ -41,6 +43,7 @@ export const {
     GROQ_API_KEY,
     GROQ_BASE_URL,
     GROQ_EVAL_MODEL,
+    DEFAULT_MODEL,
     EVAL_AZURE_OPENAI_API_KEY,
     EVAL_AZURE_OPENAI_ENDPOINT,
     EVAL_AZURE_OPENAI_API_VERSION,
