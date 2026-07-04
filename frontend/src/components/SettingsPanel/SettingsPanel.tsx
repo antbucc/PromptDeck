@@ -1,6 +1,6 @@
 // src/components/SettingsPanel/SettingsPanel.tsx
 import React, { useEffect, useState } from 'react';
-import { fetchSettings, updateSettings } from '../../services/api';
+import { fetchSettings, updateSettings, fetchModels } from '../../services/api';
 import {
   Overlay,
   Panel,
@@ -35,6 +35,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose, onSaved }) => {
   const [keyInput, setKeyInput] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [modelInfo, setModelInfo] = useState<{ models: any[]; defaultModel: string }>({ models: [], defaultModel: '' });
 
   const load = async () => {
     try {
@@ -44,7 +45,16 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose, onSaved }) => {
     } catch {
       setMessage('Could not load settings (is the backend running?).');
     }
+    try {
+      const md = await fetchModels();
+      setModelInfo({ models: md.models || [], defaultModel: md.defaultModel || '' });
+    } catch {
+      /* provider status just won't show */
+    }
   };
+
+  const providerAvailable = (p: string) => modelInfo.models.some((m) => m.provider === p && m.available);
+  const defaultEntry = modelInfo.models.find((m) => m.value === modelInfo.defaultModel);
 
   useEffect(() => { load(); }, []);
 
@@ -57,6 +67,10 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose, onSaved }) => {
       setOpenai(data.openai);
       setKeyInput('');
       setMessage(clear ? 'Anthropic key cleared.' : 'Saved.');
+      try {
+        const md = await fetchModels();
+        setModelInfo({ models: md.models || [], defaultModel: md.defaultModel || '' });
+      } catch { /* ignore */ }
       onSaved?.();
     } catch {
       setMessage('Save failed.');
@@ -70,6 +84,35 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose, onSaved }) => {
       <Panel onClick={(e) => e.stopPropagation()}>
         <CloseX onClick={onClose}>×</CloseX>
         <PanelTitle>Model Provider Settings</PanelTitle>
+
+        <Field>
+          <FieldLabel>Active default model</FieldLabel>
+          <Status $ok={!!defaultEntry?.available}>
+            {defaultEntry
+              ? `${defaultEntry.label} · ${defaultEntry.provider}${defaultEntry.available ? ' · available' : ' · NOT available here'}`
+              : (modelInfo.defaultModel || '—')}
+          </Status>
+          <Note>Preselected when creating cards/tasks. Change it on the server via the DEFAULT_MODEL env var (e.g. LLAMA_3_1 for Ollama).</Note>
+        </Field>
+
+        <Field>
+          <FieldLabel>Providers</FieldLabel>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {[
+              { id: 'ollama', label: 'Ollama — local/self-hosted (free, no limits)', okWord: 'reachable', noWord: 'not reachable' },
+              { id: 'groq', label: 'Groq — cloud (free tier)', okWord: 'configured', noWord: 'not configured' },
+              { id: 'anthropic', label: 'Claude — Anthropic', okWord: 'configured', noWord: 'not configured' },
+              { id: 'openai', label: 'GPT — Azure OpenAI', okWord: 'configured', noWord: 'not configured' },
+            ].map((p) => {
+              const ok = providerAvailable(p.id);
+              return (
+                <Status key={p.id} $ok={ok}>
+                  {ok ? '● ' : '○ '}{p.label} — {ok ? p.okWord : p.noWord}
+                </Status>
+              );
+            })}
+          </div>
+        </Field>
 
         <Field>
           <FieldLabel>Anthropic (Claude) API key</FieldLabel>
@@ -104,11 +147,6 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ onClose, onSaved }) => {
             {openai.configured ? 'Configured via .env' : 'Not configured — GPT models are disabled'}
           </Status>
           <Note>{openai.note || 'Set in backend/.env (key, endpoint, deployments).'}</Note>
-        </Field>
-
-        <Field>
-          <FieldLabel>Llama 3.1 (local, free)</FieldLabel>
-          <Status $ok={true}>No API key needed — runs locally via Ollama.</Status>
         </Field>
 
         {message && <Note>{message}</Note>}
