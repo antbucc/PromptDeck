@@ -2,11 +2,13 @@
 import { cleanEnv, str, port, bool } from 'envalid';
 
 export const env = cleanEnv(process.env, {
-    CORS_ORIGINS: str(),
-    AZURE_OPENAI_API_KEY: str(),
-    AZURE_OPENAI_ENDPOINT: str(),
-    GPT_3_5_TURBO_MODEL_NAME: str(),
-    GPT_4_MODEL_NAME: str(),
+    // Only MONGO_URL is truly required; everything else has a safe default so the
+    // server always boots. Set GROQ_API_KEY to enable the free cloud LLM.
+    CORS_ORIGINS: str({ default: '*' }),
+    AZURE_OPENAI_API_KEY: str({ default: 'placeholder' }),
+    AZURE_OPENAI_ENDPOINT: str({ default: 'https://placeholder.openai.azure.com' }),
+    GPT_3_5_TURBO_MODEL_NAME: str({ default: 'gpt-35-turbo' }),
+    GPT_4_MODEL_NAME: str({ default: 'gpt-4' }),
     ANTHROPIC_API_KEY: str({ default: '' }),
     CLAUDE_EVAL_MODEL: str({ default: 'claude-opus-4-8' }),
     OLLAMA_BASE_URL: str({ default: 'http://localhost:11434/v1' }),
@@ -15,12 +17,12 @@ export const env = cleanEnv(process.env, {
     GROQ_API_KEY: str({ default: '' }),
     GROQ_BASE_URL: str({ default: 'https://api.groq.com/openai/v1' }),
     GROQ_EVAL_MODEL: str({ default: 'llama-3.1-8b-instant' }),
-    EVAL_AZURE_OPENAI_API_KEY: str(),
-    EVAL_AZURE_OPENAI_ENDPOINT: str(),
-    EVAL_AZURE_OPENAI_API_VERSION: str(),
-    EVAL_AZURE_OPENAI_DEPLOYMENT: str(),
-    MONGO_INITDB_ROOT_USERNAME: str(),
-    MONGO_INITDB_ROOT_PASSWORD: str(),
+    EVAL_AZURE_OPENAI_API_KEY: str({ default: 'placeholder' }),
+    EVAL_AZURE_OPENAI_ENDPOINT: str({ default: 'https://placeholder.openai.azure.com' }),
+    EVAL_AZURE_OPENAI_API_VERSION: str({ default: '2024-02-15-preview' }),
+    EVAL_AZURE_OPENAI_DEPLOYMENT: str({ default: 'gpt-4' }),
+    MONGO_INITDB_ROOT_USERNAME: str({ default: 'root' }),
+    MONGO_INITDB_ROOT_PASSWORD: str({ default: 'rootpassword' }),
     MONGO_URL: str(),
     PORT: port({ default: 5000 }),
 });
