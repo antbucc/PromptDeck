@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import router from './routes';
 import cors from 'cors';
 import morgan from 'morgan';
+import { errorJsonHandler } from './middlewares/error.middleware';
 
 /*
     STRUCTURE
@@ -39,5 +40,8 @@ app.use((req, res, next) => {
 });
 
 app.use(router);
+
+// JSON error handler (must be last) — returns friendly messages instead of HTML.
+app.use(errorJsonHandler);
 
 export default app;

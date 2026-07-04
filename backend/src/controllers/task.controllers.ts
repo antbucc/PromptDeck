@@ -95,6 +95,7 @@ export const createTask = async (req: Request<{}, any, CreateTaskBody>, res: Res
 
         // Handle generated cards
         if (generate && generativeModel) {
+          try {
             const generatedData = await generateTask(newTask, generativeModel, grounding);
             const generatedCards = generatedData.cards;
 
@@ -169,6 +170,12 @@ export const createTask = async (req: Request<{}, any, CreateTaskBody>, res: Res
                     if (cur && prev) await cur.linkCard(prev._id, 'previous');
                 }
             }
+          } catch (genErr) {
+            // Generation failed — don't leave an empty orphan task behind.
+            await CardModel.deleteMany({ _id: { $in: cardIds } });
+            await TaskModel.findByIdAndDelete(newTask._id);
+            throw genErr;
+          }
         }
 
         // Add cards to the task

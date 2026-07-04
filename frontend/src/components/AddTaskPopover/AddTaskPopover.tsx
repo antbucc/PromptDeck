@@ -57,6 +57,7 @@ const AddTaskPopover: React.FC<AddTaskPopoverProps> = ({ isOpen, onRequestClose,
 
   const [isLoading, setIsLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [error, setError] = useState('');
 
   // Default to Groq 70B; only after the real model list has loaded, auto-correct
   // to the first available model if the default isn't usable here. (Skipping the
@@ -117,6 +118,7 @@ const AddTaskPopover: React.FC<AddTaskPopoverProps> = ({ isOpen, onRequestClose,
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setError('');
     setIsLoading(true);
 
     const newTask: any = { name, objective, generate };
@@ -133,8 +135,9 @@ const AddTaskPopover: React.FC<AddTaskPopoverProps> = ({ isOpen, onRequestClose,
       await createTask(newTask);
       onTaskCreated();
       onRequestClose();
-    } catch (error) {
-      console.error('Error creating task:', error);
+    } catch (err: any) {
+      console.error('Error creating task:', err);
+      setError(err?.response?.data?.message || 'Task creation failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -237,6 +240,14 @@ const AddTaskPopover: React.FC<AddTaskPopoverProps> = ({ isOpen, onRequestClose,
             </>
           )}
 
+          {error && (
+            <div style={{
+              margin: '8px 0', padding: '10px 12px', background: '#fef2f2', border: '1px solid #fecaca',
+              borderRadius: 8, color: '#b3261e', fontSize: 13, lineHeight: 1.4,
+            }}>
+              ⚠ {error}
+            </div>
+          )}
           <FormButton type="submit">{generate ? 'Generate flow' : 'Create empty task'}</FormButton>
         </form>
         {isLoading && (
