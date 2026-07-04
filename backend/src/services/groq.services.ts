@@ -24,6 +24,29 @@ const clamp = (value: unknown): number => {
     return Math.min(5, Math.max(1, n));
 };
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const HIGHER_LIMIT_MODEL = 'llama-3.3-70b-versatile';
+const isRateOrSizeError = (e: any): boolean =>
+    /rate limit|tokens per minute|request too large|too many requests|\b429\b|\b413\b/i.test(String(e?.message || ''));
+
+// Chat completion with one automatic retry on free-tier rate/size limits: waits
+// for the per-minute window and, if on a small 8B model, upgrades to a higher-limit one.
+const groqCreate = async (params: any) => {
+    const client = getGroqClient();
+    try {
+        return await client.chat.completions.create(params);
+    } catch (e) {
+        // Daily-token-limit errors won't recover in seconds — fail fast.
+        const isDaily = /per day|\btpd\b/i.test(String((e as any)?.message || ''));
+        if (isRateOrSizeError(e) && !isDaily) {
+            await sleep(5000);
+            const model = /(^|[^0-9])8b/i.test(String(params.model)) ? HIGHER_LIMIT_MODEL : params.model;
+            return await client.chat.completions.create({ ...params, model });
+        }
+        throw e;
+    }
+};
+
 /**
  * Generic chat completion against a Groq-hosted model. `json` enables JSON mode.
  */
@@ -33,8 +56,7 @@ export const groqChat = async (
     user: string,
     json: boolean = false
 ): Promise<string> => {
-    const client = getGroqClient();
-    const response = await client.chat.completions.create({
+    const response = await groqCreate({
         model: modelName,
         max_tokens: 4096,
         temperature: 0.7,
@@ -51,10 +73,8 @@ export const groqChat = async (
  * Generate a card's output using a Groq-hosted model.
  */
 export const generateWithGroq = async (modelName: string, prompt: string): Promise<string> => {
-    const client = getGroqClient();
-
     try {
-        const response = await client.chat.completions.create({
+        const response = await groqCreate({
             model: modelName,
             max_tokens: 4096,
             temperature: 0.7,
@@ -79,8 +99,6 @@ export const evaluateWithGroq = async (
     input: EvaluationInput,
     modelName: string
 ): Promise<EvaluationOutput> => {
-    const client = getGroqClient();
-
     const userContent =
         `Question:\n${input.question}\n\n` +
         `Context:\n${input.context}\n\n` +
@@ -88,7 +106,7 @@ export const evaluateWithGroq = async (
         `Score the answer on relevance, groundedness, coherence, and fluency.`;
 
     try {
-        const response = await client.chat.completions.create({
+        const response = await groqCreate({
             model: modelName,
             max_tokens: 512,
             temperature: 0,

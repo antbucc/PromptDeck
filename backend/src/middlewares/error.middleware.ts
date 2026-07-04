@@ -13,9 +13,12 @@ export const errorJsonHandler = (err: any, req: Request, res: Response, next: Ne
     let status = err?.status || err?.statusCode || 500;
     let message = raw;
 
-    if (low.includes('tokens per minute') || low.includes('request too large') || low.includes('rate limit') || low.includes('429') || low.includes('too many requests')) {
+    if (low.includes('per day') || low.includes('tpd') || low.includes('per day (tpd)')) {
         status = 429;
-        message = 'The AI provider hit a rate/size limit on the free tier. Try a more capable model (e.g. Groq Llama 3.3 70B), shorten the input/documents, then retry in a minute.';
+        message = 'The free daily token limit of the AI provider (Groq) has been reached. It resets in ~24h. In the meantime use the local Ollama model, or upgrade the Groq plan for more tokens.';
+    } else if (low.includes('tokens per minute') || low.includes('request too large') || low.includes('rate limit') || low.includes('429') || low.includes('too many requests')) {
+        status = 429;
+        message = 'The AI provider hit a per-minute rate/size limit on the free tier. Try a more capable model (e.g. Groq Llama 3.3 70B), shorten the input/documents, then retry in a minute.';
     } else if (low.includes('groq_api_key')) {
         status = 400;
         message = 'Groq is not configured on the server (missing GROQ_API_KEY).';
